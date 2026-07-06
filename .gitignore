@@ -46,6 +46,9 @@ projects/
 # === mv-guide-website 是獨立部署的 React 網站（自帶 git + GitHub 遠端），不併入主 repo ===
 mv-guide-website/
 
+# === .agents/skills 是舊的重複拷貝（已整併至 .claude/skills），Google Drive 可能同步回來，一律忽略 ===
+.agents/
+
 # === 個人紀錄／筆記（不公開上傳，靠 Google Drive 私下同步）===
 HANDOFF.md
 MIGRATION_REPORT.md
