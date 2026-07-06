@@ -46,11 +46,12 @@ projects/
 # === mv-guide-website 是獨立部署的 React 網站（自帶 git + GitHub 遠端），不併入主 repo ===
 mv-guide-website/
 
-# === 個人紀錄／筆記（不公開上傳）===
+# === 個人紀錄／筆記（不公開上傳，靠 Google Drive 私下同步）===
 HANDOFF.md
 MIGRATION_REPORT.md
 MV製作進度追蹤.md
 畢業影片MV製作對話記錄_20260429.md
+工作日誌_*.md
 
 # === 壓縮檔 ===
 *.zip
