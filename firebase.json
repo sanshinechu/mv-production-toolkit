@@ -10,7 +10,7 @@
   },
   "auth": {
     "providers": {
-      "anonymous": true
+      "anonymous": false
     }
   }
 }
