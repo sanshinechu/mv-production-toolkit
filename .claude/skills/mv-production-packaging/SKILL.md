@@ -1,5 +1,5 @@
 ---
-name: mv-production-packaging
+name: MV 製作完整工作流總控
 description: MV 製作完整工作流總控技能。當使用者要求完成一個 MV 製作（從歌詞創作到 YouTube 發布）、一次跑完整個製作線、或說「使用 mv-production-packaging」時使用。此技能整合 11 個製作步驟，包括歌詞創作、角色設計、場景提示詞、分鏡設計、視頻生成、組裝驗證、YouTube 上傳。適用於 Claude Code 和 Codex 的雙 AI 協作模式。
 ---
 

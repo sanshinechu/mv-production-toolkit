@@ -1,9 +1,9 @@
 ---
-name: mv-03-scene-prompt-generation
+name: 場景提示詞設計
 description: 根據歌詞設計 MV 場景提示詞
 ---
 
-# mv-03-scene-prompt-generation
+# 場景提示詞設計
 
 根據 MV 歌詞內容，設計具體的場景視覺描述。這個步驟是從文字創意到視覺指導的關鍵橋樑。
 
