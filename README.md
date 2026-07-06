@@ -20,12 +20,13 @@
 ## Firebase
 
 - Firebase project ID：`dancing-and-music-mv-115`
-- Firestore database ID：`mv-projects`
-- Firestore 位置：`asia-east1`
-- 登入方式：Anonymous Auth
+- 資料庫：**Realtime Database**（網頁實際使用；規則見 `database.rules.json`）
+- 登入方式：Google 登入
 - 資料路徑：`users/{uid}/mvProjects/{projectId}`
 
-Firestore 規則限制每位登入使用者只能讀寫自己的資料。
+安全規則限制每位登入使用者只能讀寫自己的資料。
+
+> 註：專案也設定了 Firestore（`firestore.rules`、`firestore.indexes.json`、ID `mv-projects`、位置 `asia-east1`），但目前前端網頁未使用，保留作為日後擴充的備用。
 
 ## 主要檔案
 
@@ -34,8 +35,9 @@ Firestore 規則限制每位登入使用者只能讀寫自己的資料。
 - `script.js`：步驟資料、切換與複製功能
 - `firebase-config.js`：前端 Firebase SDK 設定
 - `firebase.json`：Firebase 專案設定
-- `firestore.rules`：Firestore 安全規則
-- `firestore.indexes.json`：Firestore 索引設定
+- `database.rules.json`：Realtime Database 安全規則（網頁實際使用）
+- `firestore.rules`：Firestore 安全規則（備用，前端未使用）
+- `firestore.indexes.json`：Firestore 索引設定（備用）
 - `MV製作流程指南_10步驟.md`：原始指南
 - `MV製作流程指南_第二版.md`：整理後的 SOP 版本
 
