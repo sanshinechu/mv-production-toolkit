@@ -1,0 +1,6 @@
+file 'I:\我的雲端硬碟\Ai Code\01_MV製作\outputs\videos\Student_walking_towards_sunset_1080p_202607031049.mp4'
+file 'I:\我的雲端硬碟\Ai Code\01_MV製作\outputs\videos\Student_standing_in_front_of_202607031053.mp4'
+file 'I:\我的雲端硬碟\Ai Code\01_MV製作\outputs\videos\Student_running_down_hallway_1080p_202607031106.mp4'
+file 'I:\我的雲端硬碟\Ai Code\01_MV製作\outputs\videos\Camera_descends_to_playground_st…_202607031051.mp4'
+file 'I:\我的雲端硬碟\Ai Code\01_MV製作\outputs\videos\Student_touching_window_glass_1080p_202607031052.mp4'
+file 'I:\我的雲端硬碟\Ai Code\01_MV製作\outputs\videos\Photograph_reveals_student_in_cl…_202607031054.mp4'

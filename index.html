@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mv-production - MV 製作流程</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="MV 製作流程導覽">
+      <div class="brand">
+        <div class="brand-mark">MV</div>
+        <div>
+          <h1>mv-production</h1>
+          <p>AI 影像與影片 SOP</p>
+        </div>
+      </div>
+      
+      <!-- 用戶認證區域 -->
+      <div class="auth-section" id="authSection">
+        <button class="google-signin-btn" id="googleSignInBtn" type="button">
+          🔐 使用 Google 登入
+        </button>
+        <div id="userInfo" class="user-info" style="display:none;">
+          <p id="userName"></p>
+          <button class="logout-btn" id="logoutBtn" type="button">登出</button>
+        </div>
+      </div>
+
+      <nav class="step-nav" id="stepNav"></nav>
+      <div class="sidebar-note">
+        <strong>建議流程</strong>
+        <span>先完成歌曲和主角，再進入分鏡、影片和打光。</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="hero">
+        <div>
+          <h2>12 步完整 MV 製作工作流程</h2>
+          <p class="hero-copy">
+            依照 Step_01 到 Step_12 逐步完成歌詞、角色、影像、影片、Google Flow 和電影感打光。
+            常用欄位可先填好，再直接組合成可複製的 AI 指令。
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button class="primary-btn" id="copyActivePrompt" type="button">複製目前步驟指令</button>
+          <button class="secondary-btn" id="resetForm" type="button">清空表單</button>
+        </div>
+      </section>
+
+      <section class="step-details" id="stepDetailsSection">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" id="activeMeta">Step_01 - 進度 1/12</p>
+            <h3 id="activeTitle">歌詞創作與曲風風格</h3>
+          </div>
+          <span class="status-pill" id="activeCount">1 / 12</span>
+        </div>
+
+        <p id="activePurpose" class="step-purpose">
+          創作適合用 SUNO 生成音樂的歌詞，並編寫英文風格描述。
+        </p>
+
+        <div class="step-info-grid">
+          <div class="info-block">
+            <h4>⏱️ 預期時間</h4>
+            <p id="stepTime">30-45 分鐘</p>
+          </div>
+          <div class="info-block">
+            <h4>💰 成本</h4>
+            <p id="stepCost">$0</p>
+          </div>
+        </div>
+
+        <div class="step-details-group">
+          <div>
+            <h4>🛠️ 推薦工具</h4>
+            <ul id="stepTools"></ul>
+          </div>
+          <div>
+            <h4>📥 輸入物</h4>
+            <ul id="stepInputs"></ul>
+          </div>
+          <div>
+            <h4>📤 輸出物</h4>
+            <ul id="stepOutputs"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="step-details" id="stepDetailsSection">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow" id="activeMeta">Step_01 - 進度 1/12</p>
+            <h3 id="activeTitle">歌詞創作與曲風風格</h3>
+          </div>
+          <span class="status-pill" id="activeCount">1 / 12</span>
+        </div>
+
+        <p id="activePurpose" class="step-purpose">
+          創作適合用 SUNO 生成音樂的歌詞，並編寫英文風格描述。
+        </p>
+
+        <div class="step-info-grid">
+          <div class="info-block">
+            <h4>予期時間</h4>
+            <p id="stepTime">30-45 分鐘</p>
+          </div>
+          <div class="info-block">
+            <h4>成本</h4>
+            <p id="stepCost">$0</p>
+          </div>
+        </div>
+
+        <div class="step-details-group">
+          <div>
+            <h4>推薦工具</h4>
+            <ul id="stepTools"></ul>
+          </div>
+          <div>
+            <h4>輸入物</h4>
+            <ul id="stepInputs"></ul>
+          </div>
+          <div>
+            <h4>輸出物</h4>
+            <ul id="stepOutputs"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <section class="builder" aria-labelledby="builderTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Prompt Builder</p>
+              <h3 id="builderTitle">快速填入常用設定</h3>
+            </div>
+            <span class="status-pill" id="copyStatus">尚未複製</span>
+          </div>
+
+          <div class="form-grid">
+            <label>
+              歌詞
+              <textarea id="lyricsInput" placeholder="貼上完整歌詞（含結構標籤如 [Verse]、[Chorus]）"></textarea>
+            </label>
+            <label>
+              主題
+              <input id="topicInput" type="text" placeholder="例：舞樂天、校園回憶、青春熱血">
+            </label>
+            <label>
+              曲風
+              <input id="styleInput" type="text" placeholder="例：J-pop、抒情搖滾、電子流行">
+            </label>
+            <label>
+              情緒
+              <input id="moodInput" type="text" placeholder="例：溫暖、熱血、懷念、神祕">
+            </label>
+            <label>
+              主角
+              <input id="characterInput" type="text" placeholder="例：東亞少年舞者、學生樂團主唱">
+            </label>
+            <label>
+              場景
+              <input id="sceneInput" type="text" placeholder="例：學校操場、音樂教室、夜晚街道">
+            </label>
+            <label>
+              運鏡
+              <input id="cameraInput" type="text" placeholder="例：Push In、Orbit Shot、Pull Out">
+            </label>
+          </div>
+
+          <div class="generated-panel">
+            <div class="panel-title-row">
+              <h4>組合後的常用指令</h4>
+              <button class="small-btn" id="copyGenerated" type="button">複製</button>
+            </div>
+            <pre id="generatedPrompt"></pre>
+          </div>
+
+          <div class="save-panel">
+            <div class="panel-title-row">
+              <div>
+                <h4>Firebase 專案資料庫</h4>
+                <p id="firebaseStatus">請先登入 Google</p>
+              </div>
+              <button class="small-btn" id="saveProject" type="button" disabled>儲存專案</button>
+            </div>
+            <div class="save-fields">
+              <label>
+                專案名稱
+                <input id="projectNameInput" type="text" placeholder="例：舞樂天 MV 第一版">
+              </label>
+              <label>
+                備註
+                <input id="projectNoteInput" type="text" placeholder="例：v1、初稿、修改版">
+              </label>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+    import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    let currentUser = null;
+
+    // 監聽認證狀態
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      updateAuthUI();
+      updateSaveButton();
+    });
+
+    // 更新認證 UI
+    function updateAuthUI() {
+      const authSection = document.getElementById("authSection");
+      const signInBtn = document.getElementById("googleSignInBtn");
+      const userInfo = document.getElementById("userInfo");
+      const userName = document.getElementById("userName");
+      const logoutBtn = document.getElementById("logoutBtn");
+
+      if (currentUser) {
+        signInBtn.style.display = "none";
+        userInfo.style.display = "block";
+        userName.textContent = `已登入: ${currentUser.displayName || currentUser.email}`;
+        document.getElementById("firebaseStatus").textContent = "已登入，可保存專案";
+      } else {
+        signInBtn.style.display = "block";
+        userInfo.style.display = "none";
+        document.getElementById("firebaseStatus").textContent = "請先登入 Google";
+      }
+    }
+
+    // Google 登入
+    document.getElementById("googleSignInBtn").addEventListener("click", async () => {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        currentUser = result.user;
+      } catch (error) {
+        alert("登入失敗: " + error.message);
+      }
+    });
+
+    // 登出
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+        currentUser = null;
+        updateAuthUI();
+      } catch (error) {
+        alert("登出失敗: " + error.message);
+      }
+    });
+
+    // 更新保存按鈕狀態
+    function updateSaveButton() {
+      const saveBtn = document.getElementById("saveProject");
+      if (currentUser) {
+        saveBtn.disabled = false;
+      } else {
+        saveBtn.disabled = true;
+      }
+    }
+
+    // 保存專案
+    document.getElementById("saveProject").addEventListener("click", async () => {
+      if (!currentUser) {
+        alert("請先登入");
+        return;
+      }
+
+      const projectName = document.getElementById("projectNameInput").value;
+      const projectNote = document.getElementById("projectNoteInput").value;
+      const topic = document.getElementById("topicInput").value;
+      const style = document.getElementById("styleInput").value;
+      const mood = document.getElementById("moodInput").value;
+      const character = document.getElementById("characterInput").value;
+      const scene = document.getElementById("sceneInput").value;
+      const camera = document.getElementById("cameraInput").value;
+
+      if (!projectName) {
+        alert("請輸入專案名稱");
+        return;
+      }
+
+      try {
+        const userProjectsRef = ref(database, `users/${currentUser.uid}/mvProjects`);
+        await push(userProjectsRef, {
+          projectName,
+          projectNote,
+          topic,
+          style,
+          mood,
+          character,
+          scene,
+          camera,
+          createdAt: new Date().toISOString()
+        });
+        alert("專案已保存！");
+        document.getElementById("projectNameInput").value = "";
+        document.getElementById("projectNoteInput").value = "";
+      } catch (error) {
+        alert("保存失敗: " + error.message);
+      }
+    });
+  </script>
+
+  <script src="script.js"></script>
+</body>
+</html>

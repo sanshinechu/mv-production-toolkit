@@ -1,0 +1,99 @@
+# 愛情咖啡廳 MV - 正式場景生圖清單
+# 對應 MV 影片 6 個段落（總時長 216 秒）
+# 用法：python scripts/imagen.py --batch scripts/mv_love_scenes.yaml
+
+settings:
+  out: outputs/mv_scenes
+  ratio: "16:9"
+  count: 2
+  prefix: mv_scene
+
+# 角色一致性固定句（每個 prompt 都帶入）：
+# FEMALE: East Asian woman, long straight black hair with subtle waves,
+#         cream-colored oversized sweater and beige blouse, warm earth-tone palette
+# MALE:   East Asian man, short dark brown tousled hair,
+#         caramel crew neck sweater over white t-shirt, warm neutral palette
+
+scenes:
+  # ── Verse 1：初戀悸動（30 秒）──────────────────────────────────────────
+  - name: "Verse 1 - 初戀悸動"
+    prefix: scene_01_verse1
+    ratio: "16:9"
+    count: 2
+    prompt: >
+      East Asian woman with long straight black hair and subtle waves, wearing a
+      cream-colored oversized sweater over beige blouse, sitting alone by a
+      large window in a cozy coffee shop. Warm golden afternoon light streams
+      through the window, steam rising from a latte on the wooden table.
+      She gazes outside with a gentle, expectant expression, chin resting on
+      her hand. Shallow depth of field, 85mm portrait lens, warm 3500K color
+      temperature, cinematic Push In composition. Background: bokeh of café
+      shelves and soft indoor plants.
+
+  # ── Pre-Chorus：時光停駐（20 秒）──────────────────────────────────────
+  - name: "Pre-Chorus - 時光停駐"
+    prefix: scene_02_pre_chorus
+    ratio: "16:9"
+    count: 2
+    prompt: >
+      East Asian woman with long straight black hair, cream oversized sweater,
+      and East Asian man with short dark brown tousled hair, caramel crew neck
+      sweater, sitting across from each other at a wooden café table. The moment
+      of first eye contact — her eyes wide with surprise, his with a warm gentle
+      smile. Soft side lighting from window, warm 4000K café ambiance. Medium
+      shot framing both faces, slight Side Pan with Slow Zoom. Shallow depth of
+      field isolates the couple from the blurred café background.
+
+  # ── Chorus：和你在一起（30 秒）────────────────────────────────────────
+  - name: "Chorus - 和你在一起"
+    prefix: scene_03_chorus
+    ratio: "16:9"
+    count: 2
+    prompt: >
+      East Asian couple in a coffee shop: woman with cream sweater and man with
+      caramel sweater sitting close together, two latte cups on the table between
+      them. Warm, intimate atmosphere. She is laughing softly; he looks at her
+      with gentle affection. Orbit Shot slowly circling the couple, 50mm lens,
+      warm 3800K lighting. Background: soft bokeh of café interior, string lights.
+      Vibrant yet warm color palette, cinematic romance.
+
+  # ── Verse 2：漫步夕陽（30 秒）─────────────────────────────────────────
+  - name: "Verse 2 - 漫步夕陽"
+    prefix: scene_04_verse2
+    ratio: "16:9"
+    count: 2
+    prompt: >
+      East Asian couple walking hand in hand on a quiet street during golden
+      hour. Woman with long black hair in cream sweater; man with tousled brown
+      hair in caramel sweater. Long warm shadows stretch across the pavement.
+      Soft orange and amber sunset glow backlight the couple gently. Tracking
+      Shot from the side, 35mm wide lens. Background: tree-lined sidewalk with
+      warm golden foliage. Cinematic widescreen, romantic and nostalgic mood.
+
+  # ── Bridge：永遠承諾（30 秒）──────────────────────────────────────────
+  - name: "Bridge - 永遠承諾"
+    prefix: scene_05_bridge
+    ratio: "16:9"
+    count: 2
+    prompt: >
+      Intimate close moment between an East Asian couple: the man gently holds
+      the woman's hands in both of his. She looks up at him with glistening
+      eyes, emotional and moved. Warm backlit dramatic lighting, 3000K amber
+      tones with soft volumetric haze. Close-up to Medium shot, Push In + slow
+      Orbit, 85mm lens f/1.8. Background: blurred warm bokeh of city lights at
+      dusk. Cinematic composition, peak emotional intensity, cinematic grain.
+
+  # ── Outro：永遠在一起（16 秒）─────────────────────────────────────────
+  - name: "Outro - 永遠在一起"
+    prefix: scene_06_outro
+    ratio: "16:9"
+    count: 2
+    out: outputs/mv_scenes/outro
+    prompt: >
+      Wide shot of an East Asian couple standing together by a floor-to-ceiling
+      window, silhouettes against a fading sunset sky. Their figures glow with
+      warm amber backlight; the room behind them is softly dark. Pull Out camera
+      movement slowly reveals the city skyline through the window. 24mm wide
+      lens, melancholic yet hopeful tone, 2800K warm color temperature.
+      Cinematic ending composition, slightly desaturated, peaceful and
+      bittersweet mood.

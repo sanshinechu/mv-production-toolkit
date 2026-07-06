@@ -31,12 +31,26 @@ firebase-debug.log
 credentials.*
 
 # === Claude Code 本地設定（含 permissions / token）===
-.claude/
+# 排除 .claude 底下所有本地設定，但保留 skills（技能本體，需入庫共用）
+.claude/*
+!.claude/skills/
 
 # === 大型產出（影音圖）===
 outputs/**/*.mp4
 outputs/**/*.png
 outputs/**/*.jpg
+
+# === 作品/素材（各 MV 專案的音樂、輸出，不入庫）===
+projects/
+
+# === mv-guide-website 是獨立部署的 React 網站（自帶 git + GitHub 遠端），不併入主 repo ===
+mv-guide-website/
+
+# === 個人紀錄／筆記（不公開上傳）===
+HANDOFF.md
+MIGRATION_REPORT.md
+MV製作進度追蹤.md
+畢業影片MV製作對話記錄_20260429.md
 
 # === 壓縮檔 ===
 *.zip

@@ -1,0 +1,50 @@
+﻿# MV 批次生圖清單範例
+# 用法：python scripts/imagen.py --batch scripts/batch_example.yaml
+
+settings:
+  out: outputs/scenes       # 預設輸出資料夾
+  ratio: "16:9"             # 預設比例（可被每個 scene 覆蓋）
+  count: 2                  # 每個場景預設生 2 張
+  prefix: scene             # 檔名前綴
+
+scenes:
+  - name: "Verse 1 — 初遇咖啡廳"
+    prefix: scene_01_verse
+    ratio: "16:9"
+    count: 2
+    prompt: >
+      A young East Asian woman sitting alone in a cozy coffee shop,
+      soft natural window light from the left, warm golden tones,
+      cinematic shallow depth of field, 85mm portrait lens,
+      steam rising from coffee cup, bokeh background
+
+  - name: "Chorus — 東京夜雨街頭"
+    prefix: scene_02_chorus
+    ratio: "16:9"
+    count: 2
+    prompt: >
+      A young East Asian couple walking on a rainy Tokyo street at night,
+      colorful neon light reflections on wet pavement,
+      holding a transparent umbrella, cinematic wide shot,
+      35mm lens, moody atmosphere, vibrant colors
+
+  - name: "Bridge — 屋頂告白"
+    prefix: scene_03_bridge
+    ratio: "9:16"
+    count: 1
+    prompt: >
+      A young East Asian man standing on a rooftop at sunset,
+      golden hour lighting, city skyline behind him,
+      wind blowing his hair, emotional expression,
+      cinematic vertical composition, 50mm lens
+
+  - name: "Outro — 回憶特寫"
+    prefix: scene_04_outro
+    ratio: "1:1"
+    count: 2
+    out: outputs/characters
+    prompt: >
+      Close-up portrait of a young East Asian woman,
+      tears glistening in her eyes, soft studio lighting,
+      white background, emotional and cinematic,
+      butterfly lighting, 85mm f/1.4
