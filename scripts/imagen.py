@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 """
-Vertex AI Imagen CLI 生圖工具
+Vertex AI CLI 生圖工具（Gemini 3.1 Flash Image）
 整合至 MV 製作 Step 7：圖片生成
 
 單張用法：
@@ -12,15 +12,17 @@ Vertex AI Imagen CLI 生圖工具
   python scripts/imagen.py --batch scripts/batch_example.yaml
   python scripts/imagen.py --batch my_mv_scenes.yaml --out outputs/scenes
 
-環境變數：
+生圖邏輯不寫在這裡：一律呼叫 vertex_imagen.render()／generate_to_dir()。
+本檔只負責參數整理、YAML 批次迴圈、重試與統計。
+
+環境變數（實際解析在 vertex_imagen.py）：
   GOOGLE_APPLICATION_CREDENTIALS  Service Account JSON 路徑
-  GOOGLE_CLOUD_PROJECT             GCP Project ID
-  GOOGLE_CLOUD_LOCATION            區域（預設 us-central1）
+  GOOGLE_CLOUD_PROJECT            GCP Project ID
+  GOOGLE_CLOUD_LOCATION           區域（預設 global）
+  VERTEX_IMAGE_MODEL              模型（預設 gemini-3.1-flash-image）
 """
 
 import argparse
-import base64
-import os
 import sys
 import time
 
@@ -29,95 +31,58 @@ if sys.platform == "win32":
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
-from datetime import datetime
 from pathlib import Path
 
-import google.auth
-import google.auth.transport.requests
-import requests
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import vertex_imagen as vi  # noqa: E402
+
 # 預設值
-DEFAULT_PROJECT  = os.environ.get("GOOGLE_CLOUD_PROJECT", "glassy-keyword-498400-f7")
-DEFAULT_LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
-DEFAULT_MODEL    = "imagen-3.0-generate-002"
-DEFAULT_OUT      = Path(__file__).parent.parent / "outputs" / "scenes"
-VALID_RATIOS     = {"1:1", "16:9", "9:16", "4:3", "3:4"}
-RETRY_WAIT       = 65   # 配額限制時等待秒數（1 分鐘）
-MAX_RETRIES      = 3
+DEFAULT_OUT  = Path(__file__).parent.parent / "outputs" / "scenes"
+VALID_RATIOS = set(vi.SUPPORTED_ASPECTS)
+RETRY_WAIT   = 65   # 配額限制時等待秒數（1 分鐘）
+MAX_RETRIES  = 3
 
 
-def get_token() -> str:
-    credentials, _ = google.auth.default(
-        scopes=["https://www.googleapis.com/auth/cloud-platform"]
-    )
-    credentials.refresh(google.auth.transport.requests.Request())
-    return credentials.token
+def is_quota_error(err: Exception) -> bool:
+    text = str(err)
+    return "429" in text or "RESOURCE_EXHAUSTED" in text or "quota" in text.lower()
 
 
-def generate(prompt, count, ratio, project, location, model):
-    url = (
-        f"https://{location}-aiplatform.googleapis.com/v1/projects/"
-        f"{project}/locations/{location}/publishers/google/models/{model}:predict"
-    )
-    headers = {
-        "Authorization": f"Bearer {get_token()}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "instances": [{"prompt": prompt}],
-        "parameters": {
-            "sampleCount": count,
-            "aspectRatio": ratio,
-            "safetyFilterLevel": "block_some",
-            "personGeneration": "allow_adult",
-        },
-    }
-
-    for attempt in range(1, MAX_RETRIES + 1):
-        resp = requests.post(url, headers=headers, json=payload, timeout=120)
-
-        if resp.status_code == 200:
-            return [p["bytesBase64Encoded"] for p in resp.json().get("predictions", [])]
-
-        if resp.status_code == 429:
-            # 配額限制 → 等待後重試
-            if attempt < MAX_RETRIES:
-                print(f"  ⏳ 配額限制，等待 {RETRY_WAIT} 秒後重試（{attempt}/{MAX_RETRIES}）...")
-                for remaining in range(RETRY_WAIT, 0, -5):
-                    print(f"     還剩 {remaining} 秒...", end="\r")
-                    time.sleep(5)
-                print()
-                continue
-            else:
-                raise RuntimeError(f"配額限制，已重試 {MAX_RETRIES} 次仍失敗")
-
-        raise RuntimeError(f"API 錯誤 {resp.status_code}: {resp.text}")
-
-
-def save(images_b64, out_dir, prefix):
-    out_dir = Path(out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    saved = []
-    for i, b64 in enumerate(images_b64):
-        path = out_dir / f"{prefix}_{ts}_{i+1:02d}.png"
-        path.write_bytes(base64.b64decode(b64))
-        saved.append(path)
-    return saved
-
-
-def run_single(prompt, count, ratio, out, prefix, model, project, location):
+def run_single(prompt, count, ratio, out, prefix, model, project, location, image_size=None):
+    """單一場景：整理參數 + 配額重試，實際生圖交給 vertex_imagen。"""
     print(f"  比例：{ratio}  張數：{count}")
     print(f"  Prompt：{prompt[:90]}{'...' if len(prompt) > 90 else ''}")
-    images = generate(prompt, count, ratio, project, location, model)
-    paths = save(images, out, prefix)
-    for p in paths:
-        print(f"  [OK] {p.name}")
-    return paths
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            paths = vi.generate_to_dir(
+                prompt=prompt,
+                out_dir=out,
+                prefix=prefix,
+                count=count,
+                aspect_ratio=ratio,
+                image_size=image_size or vi.DEFAULT_IMAGE_SIZE,
+                project=project,
+                location=location,
+                model=model,
+            )
+            for p in paths:
+                print(f"  [OK] {p.name}")
+            return paths
+        except Exception as e:
+            if not is_quota_error(e) or attempt == MAX_RETRIES:
+                raise
+            print(f"  ⏳ 配額限制，等待 {RETRY_WAIT} 秒後重試（{attempt}/{MAX_RETRIES}）...")
+            for remaining in range(RETRY_WAIT, 0, -5):
+                print(f"     還剩 {remaining} 秒...", end="\r")
+                time.sleep(5)
+            print()
+    raise RuntimeError(f"配額限制，已重試 {MAX_RETRIES} 次仍失敗")
 
 
-def run_batch(batch_file, default_out, default_model, project, location):
+def run_batch(batch_file, default_out, default_model, project, location, image_size=None):
     batch_path = Path(batch_file)
     if not batch_path.exists():
         print(f"[錯誤] 找不到批次檔：{batch_file}", file=sys.stderr)
@@ -164,7 +129,9 @@ def run_batch(batch_file, default_out, default_model, project, location):
 
         try:
             t0 = time.time()
-            paths = run_single(prompt, count, ratio, out, prefix, model, project, location)
+            paths = run_single(
+                prompt, count, ratio, out, prefix, model, project, location, image_size
+            )
             elapsed = time.time() - t0
             print(f"  ⏱  {elapsed:.1f} 秒")
             all_paths.extend(paths)
@@ -189,7 +156,7 @@ def run_batch(batch_file, default_out, default_model, project, location):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Vertex AI Imagen CLI - MV Step 7（支援單張與批次生圖）",
+        description="Vertex AI 生圖 CLI - MV Step 7（支援單張與批次生圖）",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 範例：
@@ -208,23 +175,32 @@ def main():
     parser.add_argument("--out",      type=Path, default=DEFAULT_OUT)
     parser.add_argument("--prefix",   default="imagen")
     parser.add_argument("--batch",    help="批次 YAML 檔路徑")
-    parser.add_argument("--model",    default=DEFAULT_MODEL)
-    parser.add_argument("--project",  default=DEFAULT_PROJECT)
-    parser.add_argument("--location", default=DEFAULT_LOCATION)
+    parser.add_argument("--model",    help=f"模型（預設 {vi.DEFAULT_MODEL}）")
+    parser.add_argument("--project",  help="Vertex 專案 ID（預設讀 GOOGLE_CLOUD_PROJECT）")
+    parser.add_argument("--location", help=f"區域（預設 {vi.DEFAULT_LOCATION}）")
+    parser.add_argument("--quality",  action="store_true", help="出 2K（預設 1K）")
+    parser.add_argument("--check",    action="store_true", help="只驗設定與參數，不生圖")
 
     args = parser.parse_args()
 
     print("=" * 55)
-    print("  Vertex AI Imagen - MV 製作 Step 7")
+    print("  Vertex AI 生圖 - MV 製作 Step 7")
     print("=" * 55)
 
-    creds_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
-    if creds_path:
-        print(f"  憑證：{Path(creds_path).name}")
-    print(f"  模型：{args.model}")
+    cfg = vi.resolve_config(None, args.project, args.location, args.model)
+    print(f"  憑證：{Path(cfg['key_path']).name}")
+    print(f"  專案：{cfg['project']}")
+    print(f"  區域：{cfg['location']}")
+    print(f"  模型：{cfg['model']}")
+
+    if args.check:
+        print("\n[check] 設定完整，沒有呼叫 API。")
+        return
+
+    image_size = vi.QUALITY_IMAGE_SIZE if args.quality else vi.DEFAULT_IMAGE_SIZE
 
     if args.batch:
-        run_batch(args.batch, args.out, args.model, args.project, args.location)
+        run_batch(args.batch, args.out, args.model, args.project, args.location, image_size)
 
     elif args.prompt:
         print(f"\n生圖中...")
@@ -238,6 +214,7 @@ def main():
                 model=args.model,
                 project=args.project,
                 location=args.location,
+                image_size=image_size,
             )
             print(f"\n📁 輸出位置：{args.out.resolve()}")
             print(f"🎨 本次生成：{len(paths)} 張")

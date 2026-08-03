@@ -111,6 +111,14 @@ def build_client(project: str, location: str):
     return genai.Client(vertexai=True, project=project, location=location)
 
 
+def build_generate_config(image_config):
+    """把 SDK 型別的組裝集中在這裡，render() 本身就不必 import google.genai，
+    離線測試才有辦法在沒裝套件的機器上跑。"""
+    from google.genai import types
+
+    return types.GenerateContentConfig(response_modalities=["IMAGE"], image_config=image_config)
+
+
 def build_image_config(aspect: str, image_size: str):
     """組 ImageConfig；舊版 SDK 不支援 image_size 時自動退回只設長寬比。"""
     from google.genai import types
@@ -129,26 +137,27 @@ def output_paths(output_path: str, sample_count: int) -> list[Path]:
     return [path.parent / f"{path.stem}_{i + 1}{path.suffix}" for i in range(sample_count)]
 
 
-def generate_image(
+def render(
     prompt: str,
-    output_path: str = "output.png",
+    targets: list[Path],
     aspect_ratio: str = "1:1",
-    sample_count: int = 1,
+    image_size: str = DEFAULT_IMAGE_SIZE,
     key_path: str | None = None,
     project: str | None = None,
     location: str | None = None,
-    image_size: str = DEFAULT_IMAGE_SIZE,
-) -> list[str]:
-    from google.genai import types
+    model: str | None = None,
+) -> list[Path]:
+    """唯一會呼叫 Gemini 的地方。要幾張就給幾個目標路徑。
 
+    其他腳本（例如 imagen.py 的批次模式）一律走這裡，不要各自再寫一份 API 邏輯。
+    """
     if aspect_ratio not in SUPPORTED_ASPECTS:
         sys.exit(f"不支援的長寬比 {aspect_ratio}。可用：{', '.join(SUPPORTED_ASPECTS)}")
 
-    cfg = resolve_config(key_path, project, location)
+    cfg = resolve_config(key_path, project, location, model)
     client = build_client(cfg["project"], cfg["location"])
     image_config = build_image_config(aspect_ratio, image_size)
-    targets = output_paths(output_path, sample_count)
-    saved = []
+    saved: list[Path] = []
 
     print(f"[Gemini] {cfg['model']} 生成中：{prompt[:60]}...（{aspect_ratio}, {image_size}）")
 
@@ -157,10 +166,7 @@ def generate_image(
         response = client.models.generate_content(
             model=cfg["model"],
             contents=prompt,
-            config=types.GenerateContentConfig(
-                response_modalities=["IMAGE"],
-                image_config=image_config,
-            ),
+            config=build_generate_config(image_config),
         )
 
         image = None
@@ -176,10 +182,66 @@ def generate_image(
 
         out.parent.mkdir(parents=True, exist_ok=True)
         image.save(str(out))
-        saved.append(str(out))
+        saved.append(out)
         print(f"[OK] 已儲存：{out}")
 
     return saved
+
+
+def timestamped_paths(out_dir, prefix: str, count: int) -> list[Path]:
+    """批次模式的命名慣例：<prefix>_<時間戳>_01.png"""
+    from datetime import datetime
+
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    return [Path(out_dir) / f"{prefix}_{stamp}_{i + 1:02d}.png" for i in range(count)]
+
+
+def generate_to_dir(
+    prompt: str,
+    out_dir,
+    prefix: str = "image",
+    count: int = 1,
+    aspect_ratio: str = "1:1",
+    image_size: str = DEFAULT_IMAGE_SIZE,
+    key_path: str | None = None,
+    project: str | None = None,
+    location: str | None = None,
+    model: str | None = None,
+) -> list[Path]:
+    """存進資料夾、檔名自動加時間戳；給 imagen.py 這類批次工具用。"""
+    return render(
+        prompt,
+        timestamped_paths(out_dir, prefix, count),
+        aspect_ratio,
+        image_size,
+        key_path,
+        project,
+        location,
+        model,
+    )
+
+
+def generate_image(
+    prompt: str,
+    output_path: str = "output.png",
+    aspect_ratio: str = "1:1",
+    sample_count: int = 1,
+    key_path: str | None = None,
+    project: str | None = None,
+    location: str | None = None,
+    image_size: str = DEFAULT_IMAGE_SIZE,
+) -> list[str]:
+    """單張／指定檔名的入口，維持原本的 CLI 行為。"""
+    saved = render(
+        prompt,
+        output_paths(output_path, sample_count),
+        aspect_ratio,
+        image_size,
+        key_path,
+        project,
+        location,
+    )
+    return [str(p) for p in saved]
 
 
 def check_config(args) -> None:
