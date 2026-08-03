@@ -29,7 +29,7 @@ description: MV 製作完整工作流總控技能。當使用者要求完成一�
 | 8️⃣ | 生圖 + 生影片 | Codex（media-generation） | 45-90 分 | 🔄 進行中 |
 | 9️⃣ | FFmpeg 本地組裝 | Claude | 10-15 分 | ⬜ 待開始 |
 | 🔟 | 本地播放驗證（VLC） | Claude | 10-15 分 | ⬜ 待開始 |
-| 1️⃣1️⃣ | **YouTube 上傳**（使用 youtube_publisher） | Claude | 15-30 分 | ⬜ 待開始 |
+| 1️⃣1️⃣ | **YouTube 上傳**（共用上傳腳本，見步驟 11） | Claude | 15-30 分 | ⬜ 待開始 |
 | 1️⃣2️⃣ | **打包與資產整理** | Claude | 5-10 分 | ⬜ 待開始 |
 
 ---
@@ -376,49 +376,59 @@ c. **記錄截圖**（可選）
 
 ---
 
-### 步驟 1️⃣1️⃣：YouTube 上傳（使用 youtube_publisher）（15-30 分）
+### 步驟 1️⃣1️⃣：YouTube 上傳（使用共用上傳腳本）（15-30 分）
 
-**負責人**：Claude Code（使用 youtube_publisher skill）
+**負責人**：Claude Code（`03_剪片工作流/skills/youtube-publisher/upload_youtube.py`）
 
 **前置準備**：
 - FFmpeg 組裝完成，最終 MV 檔案位於 `outputs/final/`
 - 標題、描述、標籤、關鍵詞已在 HANDOFF.md metadata 部分準備好
-- YouTube 非公開測試頻道已設定並可用
+- 憑證放雲端硬碟，腳本會自動找到（實際路徑見剪片工作流專案的 skill 文件）
 
-**上傳方案（推薦使用 youtube_publisher）**：
+**上傳方案（推薦用共用腳本）**：
 
-#### 📋 方案 A：使用 youtube_publisher Skill（推薦）
+#### 📋 方案 A：共用上傳腳本（推薦）
 
-**優點**：快速、自動化、精確控制、無需人工點擊
+**優點**：快速、自動化、直接吃 metadata.md、無需人工點擊
 
 ```bash
-# 從 HANDOFF.md 提取以下資訊：
-標題：見 metadata.title
-描述：見 metadata.description
-標籤：見 metadata.tags
-頻道：測試頻道（非公開）
-隱私級別：private（非公開）
-
-# 執行 youtube_publisher
-使用 youtube_publisher skill：
-- 輸入檔案：outputs/final/<標題>_完整MV.mp4
-- 標題：從 HANDOFF.md 複製
-- 描述：從 HANDOFF.md 複製
-- 標籤：從 HANDOFF.md 複製（逗號分隔）
-- 隱私級別：private
-- 頻道：測試頻道或指定頻道
+# 先 dry-run 確認欄位解析正確
+uv run --with google-api-python-client --with google-auth-oauthlib \
+  "../03_剪片工作流/skills/youtube-publisher/upload_youtube.py" \
+  --folder "outputs/<MV 標題>" \
+  --title "<MV 標題>" \
+  --with-chapters \
+  --category 10 \
+  --privacy private \
+  --dry-run
 ```
+
+- 影片、`cover.png`、`metadata.md` 都從同一個資料夾自動抓
+- 描述 / 章節 / 標籤三段直接從 `metadata.md` 解析，不用手動複製
+- `--title` 必加（檔名 `<標題>_完整MV.mp4` 跟標題對不起來）
+- `--category 10` = 音樂類；腳本預設 27 教育
+- 確認無誤後拿掉 `--dry-run` 執行，完成後資料夾會多一份 `youtube-upload.json`
 
 **整合檢查清單**：
 - [ ] MP4 檔案確實存在於 `outputs/final/`
 - [ ] 檔案大小 > 10MB（確保完整）
-- [ ] 從 HANDOFF.md 複製標題、描述、標籤
-- [ ] youtube_publisher skill 已準備好
-- [ ] 確認上傳到非公開頻道（privacy: private）
+- [ ] `metadata.md` 的描述 / 章節 / 標籤三段齊全
+- [ ] dry-run 跑過，標題與標籤解析正確
+- [ ] 確認 `--privacy private`，驗證無誤才改公開
 
-#### 📋 方案 B：人工 YouTube Studio 上傳（備選）
+#### 📋 方案 B：批次上傳 / 頻道管理
 
-如果 youtube_publisher 遇到問題，使用人工上傳：
+多支一起發、或要建播放清單、改頻道資訊時，改用 `yt-auto-publisher/scripts/`（同一組憑證）：
+
+```bash
+PYTHONIOENCODING=utf-8 python yt-auto-publisher/scripts/batch_upload.py --csv videos.csv
+```
+
+細節見 `.claude/skills/youtube-publisher/SKILL.md`。
+
+#### 📋 方案 C：人工 YouTube Studio 上傳（備選）
+
+如果腳本遇到問題，使用人工上傳：
 
 **步驟**：
 1. 登入 YouTube Studio（https://studio.youtube.com）
@@ -502,7 +512,10 @@ c. **記錄截圖**（可選）
 
 | 問題 | 原因 | 解決方案 |
 |-----|------|--------|
-| youtube_publisher 報錯 | YouTube API 配置或認證失敗 | 檢查 FAL_KEY / YouTube API 金鑰，重新認證 |
+| 上傳腳本報錯 401 / invalid_grant | OAuth token 過期或被撤銷 | 加 `--auth` 重跑一次瀏覽器授權，重產 `token.json` |
+| 上傳腳本報錯 quotaExceeded | 每日配額用完（`videos.insert` 每天 100 次；字幕 400 單位、縮圖 50 單位走另一個 10,000 單位的桶） | 等太平洋時間午夜重置，或隔天再傳 |
+| 傳完發現變成私人，改不了公開 | GCP 專案未通過 OAuth 稽核，影片被強制鎖私人 | 送 API 專案稽核；腳本會用 `videos.list` 回報實際狀態 |
+| 中文輸出爆 UnicodeEncodeError | Windows 主控台 cp950 | 指令前加 `PYTHONIOENCODING=utf-8` |
 | 上傳卡住（進度條停止） | 網路連線中斷或檔案太大 | 檢查網路，確認 MP4 < 256GB，重試上傳 |
 | 視頻處理超時 | YouTube 後台處理隊列繁忙 | 等待 1-2 小時，或更換時間重試 |
 | 上傳後音畫不同步 | FFmpeg 組裝時使用了錯誤參數 | 回到步驟 9，檢查 FFmpeg 命令參數 |
@@ -510,7 +523,7 @@ c. **記錄截圖**（可選）
 
 ---
 
-**整合 youtube_publisher 的優勢**：
+**整合共用上傳腳本的優勢**：
 
 ```
 ✅ 速度：15-30 分完成（vs 人工上傳 5-10 分 + 等待處理 15-30 分 = 20-40 分）
@@ -763,7 +776,7 @@ MV,Music Video,R&B,Soul,Love,Romance,Indie Music,Original,Cinematography,Short F
 3. **素材生成** — FLUX.1 生圖、Kling V2.1 生視頻
 4. **本地組裝** — FFmpeg 合併音樂與視頻段
 5. **品質驗證** — VLC 本地播放確認
-6. **YouTube 發布** — youtube_publisher 自動上傳
+6. **YouTube 發布** — 共用上傳腳本自動上傳
 
 **製作時長**：約 6-8 小時（含 AI 等待時間）  
 **技術棧**：Claude Code + Codex + SUNO + FAL.ai + FFmpeg

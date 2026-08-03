@@ -6,6 +6,28 @@ version: 2.0.0
 author: 阿亮老師・3A科技研究社
 ---
 
+## 🔀 2026-08-03 路線調整（先讀這段）
+
+**憑證統一到單一 GCP 專案**（一個 OAuth 專案打天下，不要每個工具各養一組）。
+正本放雲端硬碟，實際路徑見剪片工作流專案的 `skills/youtube-publisher/SKILL.md`。
+本 skill 的 `yt-auto-publisher/credentials/` 已換成同一組，舊的那組移到 `credentials/` 底下的
+legacy 子資料夾備查（它的 token 早就過期了）。
+
+**上傳單支做好的 MV，優先用共用腳本**（跟剪片工作流同一支，會自動讀 metadata.md）：
+
+```bash
+uv run --with google-api-python-client --with google-auth-oauthlib \
+  "../03_剪片工作流/skills/youtube-publisher/upload_youtube.py" \
+  --folder "outputs/<MV 標題>" --title "<MV 標題>" --with-chapters --category 10 --dry-run
+```
+
+**本 skill 底下的工具負責共用腳本沒有的功能**：批次上傳（CSV）、頻道管理、播放清單維護。
+
+> Windows 執行注意：這幾支腳本的中文輸出在 cp950 主控台會爆 `UnicodeEncodeError`，
+> 前面加 `PYTHONIOENCODING=utf-8` 即可。指令裡的 `yt-auto-publisher/scripts/...` 路徑以 repo 根目錄為準。
+
+---
+
 ## 📤 功能說明
 
 全自動 YouTube 影片發布工具，可以：
@@ -27,10 +49,10 @@ author: 阿亮老師・3A科技研究社
 python --version
 
 # 驗證 YouTube 認證
-python scripts/setup_credentials.py --verify
+python yt-auto-publisher/scripts/setup_credentials.py --verify
 
 # 檢查所有依賴和配置
-python scripts/env_check.py
+python yt-auto-publisher/scripts/env_check.py
 ```
 
 ### 三種上傳方式
@@ -56,13 +78,13 @@ python scripts/env_check.py
 
 ### Step 2：初始化認證
 ```bash
-python scripts/setup_credentials.py
+python yt-auto-publisher/scripts/setup_credentials.py
 ```
 首次執行會要求你授權，之後自動保存 token 供後續使用。
 
 ### Step 3：驗證認證
 ```bash
-python scripts/setup_credentials.py --verify
+python yt-auto-publisher/scripts/setup_credentials.py --verify
 ```
 應該顯示你的頻道名稱，表示認證成功。
 
@@ -75,7 +97,7 @@ python scripts/setup_credentials.py --verify
 最簡單的方式，適合偶爾上傳一支影片。
 
 ```bash
-python scripts/upload_video.py \
+python yt-auto-publisher/scripts/upload_video.py \
   --file "/path/to/video.mp4" \
   --title "我的 MV 標題" \
   --description "MV 描述文字" \
@@ -94,7 +116,7 @@ python scripts/upload_video.py \
 
 **完整範例**：
 ```bash
-python scripts/upload_video.py \
+python yt-auto-publisher/scripts/upload_video.py \
   --file "C:/Users/user/Videos/my_mv.mp4" \
   --title "【官方 MV】我的創作歌曲" \
   --description """
@@ -132,7 +154,7 @@ file,title,description,tags,privacy,category
 
 **Step 2：執行批次上傳**
 ```bash
-python scripts/batch_upload.py --csv videos.csv
+python yt-auto-publisher/scripts/batch_upload.py --csv videos.csv
 ```
 
 **CSV 欄位說明**：
@@ -146,7 +168,7 @@ python scripts/batch_upload.py --csv videos.csv
 
 **高級選項**：
 ```bash
-python scripts/batch_upload.py \
+python yt-auto-publisher/scripts/batch_upload.py \
   --csv videos.csv \
   --playlist "我的 MV 系列" \
   --delay 30  # 每支之間延遲 30 秒
@@ -160,7 +182,7 @@ python scripts/batch_upload.py \
 
 **建立或更新播放清單**：
 ```bash
-python scripts/manage_channel.py \
+python yt-auto-publisher/scripts/manage_channel.py \
   --action create_playlist \
   --playlist_title "我的 MV 合集" \
   --playlist_desc "所有官方 MV"
@@ -168,7 +190,7 @@ python scripts/manage_channel.py \
 
 **將影片添加到播放清單**：
 ```bash
-python scripts/manage_channel.py \
+python yt-auto-publisher/scripts/manage_channel.py \
   --action add_to_playlist \
   --playlist_id "PLxx..." \
   --video_id "dQw4w9WgXcQ"
@@ -176,7 +198,7 @@ python scripts/manage_channel.py \
 
 **查看頻道分析**：
 ```bash
-python scripts/manage_channel.py \
+python yt-auto-publisher/scripts/manage_channel.py \
   --action get_analytics \
   --days 30  # 最近 30 天
 ```
@@ -253,7 +275,7 @@ YouTube 頻道：[頻道連結]
 
 **配額檢查**：
 ```bash
-python scripts/env_check.py --quota
+python yt-auto-publisher/scripts/env_check.py --quota
 ```
 
 ---
@@ -264,7 +286,7 @@ python scripts/env_check.py --quota
 
 自動切換到瀏覽器自動化：
 ```bash
-python scripts/upload_video.py \
+python yt-auto-publisher/scripts/upload_video.py \
   --file "video.mp4" \
   --title "標題" \
   --use_browser  # 強制使用瀏覽器

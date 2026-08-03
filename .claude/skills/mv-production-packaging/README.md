@@ -57,7 +57,7 @@
 | 8 | 生成 | media-generation：圖片+視頻 | Codex | 60-120 分 |
 | 9 | 組裝 | FFmpeg：合併視頻段+音樂 | Claude | 10-15 分 |
 | 10 | 驗證 | VLC：本地播放檢查 | Claude | 10-15 分 |
-| 11 | 上傳 | **youtube_publisher**：快速發布 | Claude | **15-30 分** |
+| 11 | 上傳 | **upload_youtube.py**：快速發布 | Claude | **15-30 分** |
 | 12 | 打包 | 整理成品與 metadata | Claude | **5-10 分** |
 
 ---
@@ -177,27 +177,28 @@ Verse 1 - 初戀悸動（30 秒）
 
 ## 📤 Step 11-12：YouTube 上傳與打包
 
-### Step 11：YouTube 上傳（使用 youtube_publisher）
+### Step 11：YouTube 上傳（使用共用上傳腳本）
 
-第 11 步使用 **youtube_publisher skill** 進行快速上傳，取代傳統的人工 YouTube Studio 操作。
+第 11 步使用 **`03_剪片工作流/skills/youtube-publisher/upload_youtube.py`** 進行快速上傳，
+取代傳統的人工 YouTube Studio 操作。憑證與剪片工作流共用同一組。
 
-**為什麼使用 youtube_publisher？**
+**為什麼用它？**
 
-| 優勢 | 傳統上傳 | youtube_publisher |
+| 優勢 | 傳統上傳 | 共用上傳腳本 |
 |-----|--------|------------------|
 | **速度** | 5-10 分 + 等待 15-30 分 = 20-40 分 | 15-30 分（整合所有步驟） |
-| **精確度** | 手動填入，易出錯 | 自動從 HANDOFF.md 提取 |
-| **可重複性** | 每次都要手動 | 相同參數可批量上傳 |
-| **驗證** | 需手動檢查 | 內建自動驗證報告 |
-| **整合** | 無縫接 | 直接與工作流同步 |
+| **精確度** | 手動填入，易出錯 | 自動解析 metadata.md |
+| **可重複性** | 每次都要手動 | 相同參數可重跑 |
+| **驗證** | 需手動檢查 | `--dry-run` 先看解析結果 |
+| **整合** | 無縫接 | 跟剪片工作流共用同一支 |
 
 **上傳流程**：
 ```
 Step 10: VLC 本地驗證完成 ✅
          ↓
-Step 11: youtube_publisher 上傳
-         - 輸入：outputs/final/<標題>_完整MV.mp4
-         - 元數據：從 HANDOFF.md 複製（標題、描述、標籤）
+Step 11: upload_youtube.py 上傳
+         - 輸入：outputs/<MV 標題>/（mp4 + cover.png + metadata.md）
+         - 參數：--title、--category 10、--with-chapters
          ↓
 YouTube 處理完成 ✅
          ↓
@@ -349,7 +350,7 @@ MV製作/
 ✅ **單一真實來源**：HANDOFF.md 是唯一的中央檔案  
 ✅ **可重現的流程**：同一個 Skill 再跑一遍能產出相同品質  
 ✅ **踩坑紀錄**：將常見問題與解決方案寫進文檔  
-✅ **最後一步簡化**：使用 youtube_publisher 讓上傳環節自動化和標準化
+✅ **最後一步簡化**：使用共用上傳腳本讓上傳環節自動化和標準化
 
 ---
 
@@ -361,7 +362,7 @@ MV製作/
 2. **檢查 HANDOFF.md 的「目前狀態」**
 3. **根據進度選擇從哪個步驟開始**
 4. **每做完一個步驟就更新 HANDOFF.md**
-5. **第 11 步使用 youtube_publisher 快速上傳**
+5. **第 11 步使用共用上傳腳本快速上傳**（先 `--dry-run`）
 
 ---
 

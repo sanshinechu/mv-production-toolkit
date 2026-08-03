@@ -115,7 +115,7 @@ const steps = [
     title: "YouTube 上傳與發布",
     purpose: "上傳到 YouTube 並配置完整的視頻信息。",
     inputs: ["MP4 文件", "metadata.md"],
-    tools: ["YouTube Studio 或 youtube_publisher skill"],
+    tools: ["upload_youtube.py（共用上傳腳本）或 YouTube Studio"],
     outputs: ["YouTube 視頻連結", "發布統計數據"],
     time: "15-30 分鐘",
     cost: "$0"

@@ -20,7 +20,7 @@
 | Step_10 | FFmpeg 組裝與驗證 | `mv-production-packaging` | ✓ 已涵蓋 | 該 skill 步驟 9️⃣ 已含完整 FFmpeg concat 組裝指令，無需另建 |
 | **階段 3：打包上傳** | | | | |
 | Step_11 | 打包與資產整理 | `mv-production-packaging` | ⚠️ 部分對應 | 原 skill 涵蓋步驟 10-12，需拆分 |
-| Step_12 | YouTube 上傳與發布 | `youtube_publisher` | ✓ 對應 | 現有 skill 完全對應 |
+| Step_12 | YouTube 上傳與發布 | `03_剪片工作流/skills/youtube-publisher/upload_youtube.py` | ✓ 已改指向新腳本 | 2026-08-03 起改用共用上傳腳本；舊的 `yt-auto-publisher/` 憑證已於 2026-04-11 過期，保留為備援 |
 
 ## 詳細對應說明
 
@@ -51,10 +51,28 @@
 - 新舊對應：完全相同
 - 改動：無
 
-**Step 12: youtube_publisher**
-- 功能：自動上傳影片到 YouTube、配置信息
-- 新舊對應：完全相同
-- 改動：無
+---
+
+### 🔄 已改指向新腳本
+
+**Step 12: YouTube 上傳與發布**
+
+**現在用這支**：`../03_剪片工作流/skills/youtube-publisher/upload_youtube.py`（YouTube Data API v3）
+
+```bash
+# 先 dry-run 確認標題、描述、標籤解析正確
+uv run --with google-api-python-client --with google-auth-oauthlib \
+  "../03_剪片工作流/skills/youtube-publisher/upload_youtube.py" \
+  --folder "outputs/<MV 標題>" --title "<MV 標題>" --with-chapters --category 10 --dry-run
+```
+
+- 讀 `outputs/<MV 標題>/` 內的 mp4、`cover.png`、`metadata.md`（描述抓「描述」段、標籤抓「標籤」段、`--with-chapters` 會把「章節」接到描述後面）
+- MV 的檔名慣例是 `<標題>_完整MV.mp4`，跟標題不同 → **要自己加 `--title`**
+- MV 屬音樂類，記得加 `--category 10`（預設是 27 教育）
+- 憑證放雲端硬碟，腳本自動找（實際路徑見剪片工作流專案的 skill 文件；2026-08-03 實測可用）
+- 預設 `--privacy private`，確認沒問題再改 unlisted / public
+
+**舊的去哪了**：本 repo 的 `yt-auto-publisher/` 與 `.claude/skills/youtube-publisher/` 仍在，但它原本掛在另一個 GCP 專案、token 已於 2026-04-11 過期。憑證已換成跟剪片工作流同一組，定位改為備援（批次上傳、頻道管理這兩個功能新腳本沒有）。
 
 ---
 
@@ -197,7 +215,7 @@
 - mv-08-drone-shot-generation    → Step 8: 空拍視角和細節 ✓
 - mv-10-cinematic-lighting-reference → Step 9: 電影感打光優化 ✓（用參考表）
 - mv-production-packaging        → Step 10-12: 組裝、打包、發布 ✓
-- youtube-publisher              → Step 12: YouTube 上傳與發布 ✓
+- 03_剪片工作流/skills/youtube-publisher/upload_youtube.py → Step 12: YouTube 上傳與發布 ✓（本 repo 的 youtube-publisher skill 降為備援）
 （可選進階：mv-11-timeline-storyboard、mv-12-shots-generator、mv-subtitle-scene-sync）
 ```
 
@@ -224,6 +242,11 @@
 ---
 
 ## 變更日誌
+
+- **2026-08-03**：Step 12 改指向共用上傳腳本
+  - `03_剪片工作流/skills/youtube-publisher/upload_youtube.py`（Data API v3，影片 + 縮圖 + 字幕 + 標籤 + 播放清單）
+  - 憑證統一成一組（放雲端硬碟，路徑見剪片工作流專案的 skill 文件），已實測連線正常
+  - 本 repo 的 `yt-auto-publisher/` + `.claude/skills/youtube-publisher/` 降為備援（原本那組 token 已於 2026-04-11 過期）；批次上傳與頻道管理仍只有它有
 
 - **2026-07-06**：對齊現況（v2.1）
   - 修正 Step 3 對應到 `mv-03-scene-prompt-generation`（已新建）

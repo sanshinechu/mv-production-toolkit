@@ -629,7 +629,8 @@ outputs/MV標題/
 **預期時間**：15-30 分鐘｜**成本**：$0
 
 **推薦工具**：
-- `youtube_publisher` skill（推薦自動化）
+- `03_剪片工作流/skills/youtube-publisher/upload_youtube.py`（推薦，Data API v3 自動化）
+- `youtube-publisher` skill 的 `yt-auto-publisher/`（批次上傳、頻道管理才用）
 - YouTube Studio（手動上傳）
 
 **輸出物**
@@ -638,7 +639,9 @@ outputs/MV標題/
 
 **詳細說明**
 
-使用 youtube_publisher skill 或手動上傳到 YouTube。配置視頻信息（標題、描述、章節、標籤等）。
+用共用上傳腳本或手動上傳到 YouTube。配置視頻信息（標題、描述、章節、標籤等）。
+
+> 憑證與剪片工作流共用同一組 OAuth 憑證，正本放雲端硬碟（實際路徑見該專案的 skill 文件），腳本會自動找到，不用手動指定。
 
 **上傳前檢查清單**
 - ✓ 標題簡潔吸引（不超過 100 字）
@@ -647,12 +650,22 @@ outputs/MV標題/
 - ✓ 標籤最多 30 個
 - ✓ 縮圖品質檢查
 
-**使用 youtube_publisher skill**
-1. 準備好 metadata.md 中的描述和標籤
-2. 調用 skill：`youtube_publisher`
-3. 上傳 MP4 和封面圖
-4. 配置視頻信息（description, chapters, tags）
-5. 設為「不公開」先驗證，確認無誤後發布
+**使用共用上傳腳本**（推薦）
+
+```bash
+# 先 dry-run 看解析出來的標題、描述、標籤，確認後拿掉 --dry-run
+uv run --with google-api-python-client --with google-auth-oauthlib \
+  "../03_剪片工作流/skills/youtube-publisher/upload_youtube.py" \
+  --folder "outputs/<MV 標題>" --title "<MV 標題>" --with-chapters --category 10 --dry-run
+```
+
+1. 腳本自己讀 `outputs/<MV 標題>/` 的 mp4、`cover.png`、`metadata.md`（描述 / 章節 / 標籤三段都抓得到）
+2. MV 檔名是 `<標題>_完整MV.mp4` 跟標題對不起來 → **一定要加 `--title`**
+3. MV 屬音樂類 → `--category 10`（腳本預設 27 教育）
+4. 預設 `--privacy private`，確認無誤後再改 unlisted / public
+5. 跑完資料夾會多一份 `youtube-upload.json`（videoId、連結），回填 HANDOFF.md 用
+
+**批次上傳或頻道管理**才改用 `yt-auto-publisher/scripts/`（同一組憑證，見 `.claude/skills/youtube-publisher/SKILL.md`）。
 
 **手動上傳步驟**（如不使用 skill）
 1. 登入 YouTube Studio（youtube.com/studio）
