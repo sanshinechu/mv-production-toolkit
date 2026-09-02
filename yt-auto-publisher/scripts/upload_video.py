@@ -81,6 +81,10 @@ def parse_args():
         choices=["public", "unlisted", "private"],
         help="隱私設定（預設 private）",
     )
+    parser.add_argument(
+        "--default-language", default="",
+        help="影片語言（BCP-47，例如 zh-Hant）。不給就不送，維持 YouTube 自動判定",
+    )
     parser.add_argument("--playlist", default="", help="上傳後加入指定播放清單名稱")
     parser.add_argument("--thumbnail", default="", help="自訂縮圖圖片路徑")
     parser.add_argument(
@@ -127,6 +131,15 @@ def upload_via_api(args):
     # 解析標籤
     tags = [t.strip() for t in args.tags.split(",") if t.strip()] if args.tags else None
 
+    # 影片語言。**不給就不送**，維持這支工具原本的行為（MV 專案沒在設這個）。
+    #
+    # 為什麼要有這個參數：`videos.insert` 沒帶 `defaultLanguage` /
+    # `defaultAudioLanguage` 的話，影片一上架就是「未設定」，**補救只能靠事後
+    # `videos.update`**——中文旁白會被當成語言不明，影響自動字幕與翻譯判定，
+    # 而且不會報錯。2026-09-01／09-02 在 12_備課工作流 連兩天各補一批就是這個原因。
+    # 用 getattr 讀，是為了讓沒有這個屬性的舊呼叫端（MV 那條）照樣能跑。
+    lang = (getattr(args, "default_language", "") or "").strip()
+
     # 建立影片中繼資料
     body = {
         "snippet": {
@@ -140,6 +153,11 @@ def upload_via_api(args):
             "selfDeclaredMadeForKids": False,
         },
     }
+    if lang:
+        # 兩個都要帶。只帶 defaultLanguage 的話 defaultAudioLanguage 仍是未設定，
+        # 之後想補就得走 videos.update（整段覆寫，要 read-modify-write 才安全）。
+        body["snippet"]["defaultLanguage"] = lang
+        body["snippet"]["defaultAudioLanguage"] = lang
 
     file_path = Path(args.file)
     if not file_path.exists():
@@ -152,6 +170,7 @@ def upload_via_api(args):
     print(f"  標題：{args.title}")
     print(f"  隱私：{args.privacy}")
     print(f"  類別：{category_id}")
+    print(f"  語言：{lang or '(未設定，由 YouTube 自動判定)'}")
     if tags:
         print(f"  標籤：{', '.join(tags)}")
 
