@@ -95,3 +95,5 @@ client_secret*.json
 # 音訊與暫存素材
 downloads/
 .tmp-tools/
+# yt-dlp.exe 之類的外部執行檔，17MB
+.tools/
