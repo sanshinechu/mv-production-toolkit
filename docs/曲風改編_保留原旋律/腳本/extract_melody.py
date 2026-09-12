@@ -10,29 +10,46 @@
 ⚠️ 抽出來的是「差不多」的旋律，不是樂譜。導引音軌只需要音高輪廓，夠用就好。
 """
 import argparse
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
 
 
 def run_demucs(src: Path, workdir: Path) -> Path:
-    """把人聲拆出來。回傳 vocals.wav 的路徑。"""
+    """把人聲拆出來。回傳 vocals.wav 的路徑。
+
+    ⚠️ 全程在 ASCII 路徑下跑。Windows 上把含中文的路徑傳進子行程，
+    Demucs 會因為編碼而失敗（2026-09-12 實測：檔名是「【摇滚现场】至少还有你」
+    就直接 exit 1，而且錯誤訊息本身也是亂碼，看不出原因）。
+    所以先複製成 input.<ext>、輸出到暫存區，做完再搬回來。
+    """
     print(f"[1/2] Demucs 分離人聲：{src.name}")
-    cmd = [sys.executable, "-m", "demucs.separate",
-           "--two-stems", "vocals", "-n", "htdemucs",
-           "-o", str(workdir), str(src)]
-    subprocess.run(cmd, check=True)
-    vocals = workdir / "htdemucs" / src.stem / "vocals.wav"
-    if not vocals.exists():
-        # Demucs 會把檔名裡的某些字元換掉，找不到就掃一下
-        found = list((workdir / "htdemucs").glob("*/vocals.wav"))
+    workdir.mkdir(parents=True, exist_ok=True)
+    tmp = Path(tempfile.mkdtemp(prefix="demucs_"))
+    try:
+        ascii_src = tmp / f"input{src.suffix.lower()}"
+        shutil.copy2(src, ascii_src)
+        cmd = [sys.executable, "-m", "demucs.separate",
+               "--two-stems", "vocals", "-n", "htdemucs",
+               "-o", str(tmp / "out"), str(ascii_src)]
+        subprocess.run(cmd, check=True)
+        found = list((tmp / "out").glob("*/*/vocals.wav"))
         if not found:
-            raise SystemExit(f"找不到分離結果，預期在 {vocals}")
-        vocals = found[0]
-    print(f"      → {vocals}")
-    return vocals
+            raise SystemExit(f"找不到分離結果，預期在 {tmp / 'out'} 底下")
+        dst = workdir / "vocals.wav"
+        shutil.copy2(found[0], dst)
+        # 伴奏軌也留著：疊軌流程用不到，但要拿原伴奏當參考時省得重跑
+        other = found[0].parent / "no_vocals.wav"
+        if other.exists():
+            shutil.copy2(other, workdir / "no_vocals.wav")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    print(f"      → {dst}")
+    return dst
 
 
 def drop_octave_ghosts(notes, ratio=0.7):
@@ -85,6 +102,10 @@ def main():
                     help="輸入已經是乾淨的人聲軌或單音演奏，不用再分離")
     ap.add_argument("--keep-polyphonic", action="store_true",
                     help="保留和弦，不壓成單音線")
+    ap.add_argument("--min-pitch", type=int, default=45,
+                    help="低於這個 MIDI 音高的音視為雜訊（預設 45=A2，男低音下緣）")
+    ap.add_argument("--max-pitch", type=int, default=88,
+                    help="高於這個 MIDI 音高的音視為雜訊（預設 88=E6，女高音上緣）")
     ap.add_argument("--keep-ghosts", action="store_true",
                     help="不要濾掉高八度的泛音假音（真的有高八度和聲時才用）")
     ap.add_argument("--min-note-ms", type=float, default=100,
@@ -109,7 +130,9 @@ def main():
         inst.pitch_bends = []          # Basic Pitch 塞的彎音，合成出來會走音
         inst.control_changes = []
         inst.program = 0               # Acoustic Grand Piano
-        inst.notes = [n for n in inst.notes if n.end - n.start >= min_len]
+        inst.notes = [n for n in inst.notes
+                      if n.end - n.start >= min_len
+                      and args.min_pitch <= n.pitch <= args.max_pitch]
         if not args.keep_ghosts:
             inst.notes = drop_octave_ghosts(inst.notes)
         if not args.keep_polyphonic:
@@ -126,7 +149,12 @@ def main():
     lo, hi = min(n.pitch for n in notes), max(n.pitch for n in notes)
     print(f"\n完成：{dst}")
     print(f"  音符 {len(notes)} 個，長度 {max(n.end for n in notes):.1f} 秒")
-    print(f"  音域 {pretty_midi.note_number_to_name(lo)} ~ {pretty_midi.note_number_to_name(hi)}")
+    print(f"  音域 {pretty_midi.note_number_to_name(lo)} ~ {pretty_midi.note_number_to_name(hi)}"
+          f"（過濾範圍 {pretty_midi.note_number_to_name(args.min_pitch)}"
+          f"~{pretty_midi.note_number_to_name(args.max_pitch)}）")
+    if lo == args.min_pitch or hi == args.max_pitch:
+        print("  ⚠️ 音域貼到過濾邊界，可能還有雜訊沒濾乾淨，或真的有音被砍掉。"
+              "聽一下 guide.wav 再決定要不要調 --min-pitch／--max-pitch")
     print(f"\n下一步：先用 analyze.py 量原曲 BPM，再跑")
     print(f"  uv run --python 3.10 --with pretty_midi --with soundfile \\")
     print(f"      python make_guide.py \"{dst}\" --bpm <原曲BPM>")
