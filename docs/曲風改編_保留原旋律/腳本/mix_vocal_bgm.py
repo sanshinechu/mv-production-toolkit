@@ -111,20 +111,35 @@ def main():
         print("\n（--dry-run，沒有輸出檔案）")
         return
 
+    # 混音時載入立體聲（若輸入為單聲道則自動擴充為雙聲道）
+    v_stereo, _ = librosa.load(args.vocals, sr=SR, mono=False)
+    b_stereo, _ = librosa.load(args.bgm, sr=SR, mono=False)
+    if v_stereo.ndim == 1:
+        v_stereo = np.stack([v_stereo, v_stereo])
+    if b_stereo.ndim == 1:
+        b_stereo = np.stack([b_stereo, b_stereo])
+
+    if args.stretch:
+        rate = b_stereo.shape[1] / v_stereo.shape[1]
+        b_stereo = np.stack([
+            librosa.effects.time_stretch(b_stereo[0], rate=rate),
+            librosa.effects.time_stretch(b_stereo[1], rate=rate)
+        ])
+
     shift = int(round(off * SR))
-    n = max(len(v), len(b) + max(shift, 0))
-    mix = np.zeros(n)
-    mix[:len(v)] += v * 10 ** (args.vocal_gain / 20)
+    n = max(v_stereo.shape[1], b_stereo.shape[1] + max(shift, 0))
+    mix = np.zeros((2, n))
+    mix[:, :v_stereo.shape[1]] += v_stereo * 10 ** (args.vocal_gain / 20)
     s = max(shift, 0)
-    bb = b[max(-shift, 0):]
-    mix[s:s + len(bb)] += bb * 10 ** (args.bgm_gain / 20)
+    bb = b_stereo[:, max(-shift, 0):]
+    mix[:, s:s + bb.shape[1]] += bb * 10 ** (args.bgm_gain / 20)
 
     peak = np.abs(mix).max()
     if peak > 0:
         mix *= 10 ** (-1 / 20) / peak          # 峰值壓到 -1 dBFS，避免削波
 
-    sf.write(args.out, mix.astype(np.float32), SR)
-    print(f"\n完成：{args.out}  ({len(mix)/SR:.1f} 秒)")
+    sf.write(args.out, mix.T.astype(np.float32), SR)
+    print(f"\n完成（立體聲）：{args.out}  ({mix.shape[1]/SR:.1f} 秒)")
     print("聽的時候注意：副歌人聲會不會被伴奏蓋掉（調 --bgm-gain），")
     print("以及後半段有沒有逐漸失去同步（那就是速度差，要 --stretch 或重生）。")
 

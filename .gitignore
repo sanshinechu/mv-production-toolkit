@@ -91,3 +91,7 @@ yt-auto-publisher/credentials/
 token.json
 client_secret*.json
 .git_backup_*/
+
+# 音訊與暫存素材
+downloads/
+.tmp-tools/
