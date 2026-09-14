@@ -402,6 +402,47 @@ uv run --python 3.11 --with librosa --with soundfile --with pyyaml python 腳本
 
 ---
 
+## 九之四、歌詞資料檔（不入版控）
+
+**歌詞不寫在原始碼裡。** `mv-production-toolkit` 是 **public** repo，
+而原詞與改編詞都受著作權保護——推上去之後就算再刪，GitHub 的歷史還是撈得回來。
+
+所以 `腳本/` 底下兩支需要歌詞的程式改成讀本機資料檔：
+
+| 腳本 | 讀哪個檔 | 覆寫參數 |
+|---|---|---|
+| `build_lyric_melody_midi.py` | `歌詞/至少還有你_分段歌詞.json` | `--lyrics` |
+| `rebuild_186s_vocal_ustx.py` | `歌詞/至少還有你_逐句對位.json` | `--phrases` |
+
+`歌詞/` 已列入本目錄的 `.gitignore`，跟音檔同一個規矩。
+**剛 clone 下來不會有這個目錄**，兩支腳本會直接 `SystemExit` 並告訴你缺哪個檔——
+這是預期行為，不是壞了。內容靠 Google Drive 同步，或自己照下面的格式補。
+
+`至少還有你_分段歌詞.json`：
+
+```json
+{"sections": [{"start": 18.0, "end": 53.0, "lines": ["第一句", "第二句"]}]}
+```
+
+`start` / `end` 是改編版秒數，`lines` 是該段歌詞行；程式依字數把時值分給每一行。
+
+`至少還有你_逐句對位.json`：
+
+```json
+{"phrases": [{"target_start": 18.0, "target_end": 22.2,
+              "source_start": 34.0, "source_end": 39.3, "lyric": "這一句"}]}
+```
+
+`target_*` 是改編版（186 秒）的秒數、`source_*` 是參考版分離主唱的秒數，
+兩組時間軸不同，不要混用——來歷見九之三與 `對位驗證_*/逐句對位_使用者確認.md`。
+
+> 🕳️ **2026-09-14 補的。** 在那之前這兩支把整首歌詞當成模組層級常數寫死，
+> 而且只有 `rebuild_186s_vocal_ustx.py` 被記得「不要推」——
+> `build_lyric_melody_midi.py` 同樣有全詞卻沒人注意到，
+> 差一點就跟其他腳本一起被提交。**靠人記得會漏，所以改成結構上推不上去。**
+
+---
+
 ## 十、常見狀況
 
 **Suno 說上傳的音檔有版權問題** → guide.wav 不該被抓到。檢查是不是不小心傳成原曲或
