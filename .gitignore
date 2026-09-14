@@ -97,3 +97,6 @@ downloads/
 .tmp-tools/
 # yt-dlp.exe 之類的外部執行檔，17MB
 .tools/
+
+# 本機大型工具與聲庫（OpenUtau 攜帶版、voicebank、各式 venv），134MB+，勿入庫
+tools/
