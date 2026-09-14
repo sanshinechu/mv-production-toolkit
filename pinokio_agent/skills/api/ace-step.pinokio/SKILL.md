@@ -8,10 +8,12 @@ description: Generate or cover music through the public Gradio API exposed by AC
 ## Clients
 
 Use `clients/generate_cover.py` for a melody-preserving vocal cover. Supply the runtime base URL, source audio, UTF-8 lyrics file, output directory, caption, duration, BPM, key, and cover strength.
+When the service is online but model components are not loaded, also pass `--initialize` and the checkpoint path reported by the runtime API.
 
 ## Operations
 
 The client calls the public `/generation_wrapper` Gradio endpoint and copies the first generated audio sample into the requested output directory.
+It first calls `/_handle_mode_change` in the same API session; use `--mode Remix` for source-audio melody retention.
 
 ## Runtime Inputs
 

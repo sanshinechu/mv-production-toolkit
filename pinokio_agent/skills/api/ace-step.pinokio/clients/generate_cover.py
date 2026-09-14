@@ -8,6 +8,30 @@ from pathlib import Path
 
 from gradio_client import Client, handle_file
 
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
+
+
+def find_path(value):
+    if isinstance(value, (str, Path)):
+        return str(value)
+    if isinstance(value, dict):
+        for key in ("path", "url", "value", "data"):
+            if key in value:
+                found = find_path(value[key])
+                if found:
+                    return found
+        for child in value.values():
+            found = find_path(child)
+            if found:
+                return found
+    if isinstance(value, (list, tuple)):
+        for child in value:
+            found = find_path(child)
+            if found:
+                return found
+    return None
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -21,6 +45,10 @@ def main() -> None:
     parser.add_argument("--key", default="E♭ major")
     parser.add_argument("--cover-strength", type=float, default=0.78)
     parser.add_argument("--seed", type=int, default=20260912)
+    parser.add_argument("--output-name", default="ace_step_cover.mp3")
+    parser.add_argument("--mode", choices=("Custom", "Remix", "Repaint"), default="Remix")
+    parser.add_argument("--checkpoint")
+    parser.add_argument("--initialize", action="store_true")
     args = parser.parse_args()
 
     source = Path(args.source_audio).expanduser().resolve()
@@ -49,12 +77,39 @@ def main() -> None:
     ]
 
     client = Client(args.base_url, verbose=True)
+    if args.initialize:
+        if not args.checkpoint:
+            raise SystemExit("--checkpoint is required with --initialize")
+        init_result = client.predict(
+            args.checkpoint,
+            "acestep-v15-turbo",
+            "auto",
+            True,
+            "acestep-5Hz-lm-1.7B",
+            "pt",
+            False,
+            True,
+            True,
+            False,
+            True,
+            False,
+            "Custom",
+            1,
+            "official",
+            api_name="/lambda_6",
+        )
+        print(f"Initialization: {init_result[0]}", file=sys.stderr)
+    mode_result = client.predict(args.mode, api_name="/_handle_mode_change")
+    print(f"Mode: {mode_result[2] if len(mode_result) > 2 else args.mode}", file=sys.stderr)
     result = client.predict(*values, api_name="/generation_wrapper")
     first = result[0]
     if not first:
         raise SystemExit(f"ACE-Step returned no audio. Status: {result[10] if len(result) > 10 else 'unknown'}")
+    first = find_path(first)
+    if not first:
+        raise SystemExit("ACE-Step returned an audio object without a usable path")
     src = Path(first)
-    dst = outdir / "至少還有你_爆發女聲_60秒測試_完整生成.mp3"
+    dst = outdir / args.output_name
     shutil.copy2(src, dst)
     payload = {
         "output": str(dst),
