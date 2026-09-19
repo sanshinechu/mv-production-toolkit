@@ -39,6 +39,10 @@ credentials.*
 outputs/**/*.mp4
 outputs/**/*.png
 outputs/**/*.jpg
+# 樂譜辨識的中間檔與下載來源素材
+outputs/score_omr*/
+sources/
+work/
 
 # === 作品/素材（各 MV 專案的音樂、輸出，不入庫）===
 projects/
