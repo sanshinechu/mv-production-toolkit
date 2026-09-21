@@ -1,6 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+const outPath = process.argv[2] || 'outputs/白色風車_單音/白色風車_原曲速度_單音旋律.mid';
+const bpm = Number(process.argv[3] ?? 71);
+const fullMvTimeline = process.argv.includes('--official-mv-timeline');
+if (!Number.isFinite(bpm) || bpm <= 0) throw new Error('BPM must be a positive number.');
+
 // Pitch definitions
 const pitchByKey = {
   F: { '1': 65, '2': 67, '3': 69, '4': 70, '5': 72, '6': 74, '7': 76, 'i': 77 },
@@ -249,7 +254,51 @@ const scoredBars = [
   { key: 'D', notes: [{ n: '0', d: 4.0 }] },
 ];
 
-// Validate all bars sum to 4.0
+// The source preview omits the second verse and some timed rests.  This option
+// reuses its melody phrases but anchors them to the official-MV lyric timeline.
+// Timestamp anchors (seconds): 16.05, 67.59, 134.30, 137.83, 179.13, 229.62,
+// 240.27, 252.15.  Each phrase is proportionally scaled only inside its span.
+const restForSeconds = (seconds, key = 'D') => ({
+  key,
+  notes: [{ n: '0', d: seconds * bpm / 60 }],
+});
+const scaledRange = (startBar, endBar, seconds, trimLeadingRest = false) => {
+  const phrase = scoredBars.slice(startBar - 1, endBar).map(bar => ({
+    key: bar.key,
+    notes: bar.notes.map(note => ({ ...note })),
+  }));
+  if (trimLeadingRest) {
+    while (phrase[0]?.notes[0]?.n === '0') phrase[0].notes.shift();
+  }
+  const sourceBeats = phrase.reduce((sum, bar) => sum + bar.notes.reduce((subtotal, note) => subtotal + note.d, 0), 0);
+  const scale = (seconds * bpm / 60) / sourceBeats;
+  return phrase.map(bar => ({
+    key: bar.key,
+    notes: bar.notes.map(note => ({ ...note, d: note.d * scale })),
+  }));
+};
+const performanceBars = fullMvTimeline ? [
+  restForSeconds(16.05, 'F'),
+  ...scaledRange(5, 20, 51.54, true),
+  ...scaledRange(21, 41, 66.71, true),
+  restForSeconds(3.53),
+  ...scaledRange(5, 12, 26.56, true),
+  ...scaledRange(17, 20, 14.74, true),
+  ...scaledRange(21, 37, 50.49, true),
+  restForSeconds(10.65),
+  ...scaledRange(43, 46, 11.88, true),
+] : scoredBars;
+
+// Validate every generated bar / segment has a positive duration.
+for (let b = 0; b < performanceBars.length; b++) {
+  const sum = performanceBars[b].notes.reduce((acc, n) => acc + n.d, 0);
+  if (sum <= 0) {
+    console.error(`Error in segment ${b + 1}: duration must be positive.`);
+    process.exit(1);
+  }
+}
+
+// Original score validation remains strict when creating its compact version.
 for (let b = 0; b < scoredBars.length; b++) {
   const sum = scoredBars[b].notes.reduce((acc, n) => acc + n.d, 0);
   if (Math.abs(sum - 4.0) > 0.001) {
@@ -257,10 +306,7 @@ for (let b = 0; b < scoredBars.length; b++) {
     process.exit(1);
   }
 }
-console.log(`Validated ${scoredBars.length} bars, all strictly 4.0 beats!`);
-
-const outPath = process.argv[2] || 'outputs/白色風車_單音/白色風車_原曲速度_單音旋律.mid';
-const bpm = Number(process.argv[3] ?? 71);
+console.log(`Validated ${scoredBars.length} source bars, all strictly 4.0 beats.`);
 const division = 480;
 const tempo = Math.round(60_000_000 / bpm);
 
@@ -283,7 +329,7 @@ const track = [
 ];
 
 let pendingRestTicks = 0;
-for (const bar of scoredBars) {
+for (const bar of performanceBars) {
   const pitchMap = pitchByKey[bar.key];
   for (const item of bar.notes) {
     const ticks = Math.round(item.d * division);
@@ -305,4 +351,4 @@ const header = Buffer.alloc(6);
 header.writeUInt16BE(0, 0); header.writeUInt16BE(1, 2); header.writeUInt16BE(division, 4);
 fs.mkdirSync(path.dirname(outPath), { recursive: true });
 fs.writeFileSync(outPath, Buffer.concat([chunk('MThd', header), chunk('MTrk', track)]));
-console.log(`Successfully generated ${outPath} (${scoredBars.length} bars at ${bpm} BPM).`);
+console.log(`Successfully generated ${outPath} (${performanceBars.length} ${fullMvTimeline ? 'timeline segments' : 'bars'} at ${bpm} BPM).`);

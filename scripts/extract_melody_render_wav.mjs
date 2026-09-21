@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const [inputPath, outputPath] = process.argv.slice(2);
+const humMode = process.argv.includes('--hum');
 if (!inputPath || !outputPath) {
   console.error('Usage: node extract_melody_render_wav.mjs input.mid output.wav');
   process.exit(2);
@@ -152,19 +153,31 @@ const samples = new Float32Array(Math.ceil(duration * sampleRate));
 
 for (const note of timed) {
   const start = Math.floor(note.start * sampleRate);
-  const end = Math.min(samples.length, Math.ceil((note.end + 0.55) * sampleRate));
+  const end = Math.min(samples.length, Math.ceil((note.end + (humMode ? 0.12 : 0.55)) * sampleRate));
   const held = Math.max(0.02, note.end - note.start);
   const freq = 440 * 2 ** ((note.pitch - 69) / 12);
   const gain = 0.16 + 0.34 * (note.velocity / 127);
   for (let i = start; i < end; i++) {
     const t = (i - start) / sampleRate;
-    const attack = Math.min(1, t / 0.008);
-    const release = t <= held ? 1 : Math.max(0, 1 - (t - held) / 0.55);
-    const decay = Math.exp(-1.7 * t);
-    const tone = Math.sin(2 * Math.PI * freq * t)
-      + 0.38 * Math.sin(2 * Math.PI * freq * 2 * t) * Math.exp(-2.4 * t)
-      + 0.16 * Math.sin(2 * Math.PI * freq * 3 * t) * Math.exp(-3.3 * t);
-    samples[i] += gain * attack * release * decay * tone;
+    if (humMode) {
+      const attack = Math.min(1, t / 0.045);
+      const release = t <= held ? 1 : Math.max(0, 1 - (t - held) / 0.12);
+      const phase = 2 * Math.PI * freq * t + 0.035 * Math.sin(2 * Math.PI * 5.1 * t);
+      const tone = Math.sin(phase)
+        + 0.34 * Math.sin(phase * 2)
+        + 0.12 * Math.sin(phase * 3)
+        + 0.05 * Math.sin(phase * 4);
+      const vibrato = 0.93 + 0.07 * Math.sin(2 * Math.PI * 5.1 * t);
+      samples[i] += gain * 0.72 * attack * release * vibrato * tone;
+    } else {
+      const attack = Math.min(1, t / 0.008);
+      const release = t <= held ? 1 : Math.max(0, 1 - (t - held) / 0.55);
+      const decay = Math.exp(-1.7 * t);
+      const tone = Math.sin(2 * Math.PI * freq * t)
+        + 0.38 * Math.sin(2 * Math.PI * freq * 2 * t) * Math.exp(-2.4 * t)
+        + 0.16 * Math.sin(2 * Math.PI * freq * 3 * t) * Math.exp(-3.3 * t);
+      samples[i] += gain * attack * release * decay * tone;
+    }
   }
 }
 
@@ -203,5 +216,6 @@ console.log(JSON.stringify({
   durationSeconds: Number(duration.toFixed(3)),
   sampleRate,
   channels: 1,
+  renderStyle: humMode ? 'synthetic humming guide' : 'piano-like synth',
   output: outputPath,
 }, null, 2));
