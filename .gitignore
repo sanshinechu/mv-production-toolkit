@@ -102,6 +102,7 @@ downloads/
 *.wav
 *.mp3
 *.mid
+outputs/
 *歌詞*.txt
 # yt-dlp.exe 之類的外部執行檔，17MB
 .tools/
