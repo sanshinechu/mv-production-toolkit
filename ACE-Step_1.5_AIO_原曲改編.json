@@ -1,0 +1,865 @@
+{
+  "id": "88ac5dad-efd7-40bb-84fe-fbaefdee1fa9",
+  "revision": 0,
+  "last_node_id": 125,
+  "last_link_id": 275,
+  "nodes": [
+    {
+      "id": 97,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        -210,
+        -670
+      ],
+      "size": [
+        430,
+        150
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            247
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            244
+          ]
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            248,
+            271
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CheckpointLoaderSimple",
+        "cnr_id": "comfy-core",
+        "ver": "0.11.1",
+        "models": [
+          {
+            "name": "ace_step_1.5_turbo_aio.safetensors",
+            "url": "https://huggingface.co/Comfy-Org/ace_step_1.5_ComfyUI_files/resolve/main/checkpoints/ace_step_1.5_turbo_aio.safetensors",
+            "directory": "checkpoints"
+          }
+        ],
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        "ace_step_1.5_turbo_aio.safetensors"
+      ],
+      "widgets_values_named": {
+        "ckpt_name": "ace_step_1.5_turbo_aio.safetensors"
+      }
+    },
+    {
+      "id": 94,
+      "type": "TextEncodeAceStepAudio1.5",
+      "pos": [
+        270,
+        -670
+      ],
+      "size": [
+        620,
+        570
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 244
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 257
+        },
+        {
+          "name": "duration",
+          "type": "FLOAT",
+          "widget": {
+            "name": "duration"
+          },
+          "link": 251
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            254,
+            255
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "TextEncodeAceStepAudio1.5",
+        "cnr_id": "comfy-core",
+        "ver": "0.11.1",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        "流行改編爵士風格, 慢節奏爵士, 柔和鋼琴, 薩克斯風, 慵懶溫暖氛圍, 4/4拍, 高音質 (Jazz style adaptation, mellow saxophone, soft piano, warm acoustic bass, cozy vibes)",
+        "（選填）保留原曲唱腔與旋律請留空；若想替換歌詞請在此填入新歌詞",
+        31,
+        "fixed",
+        190,
+        60,
+        "4",
+        "en",
+        "E minor",
+        true,
+        2,
+        0.85,
+        0.9,
+        0,
+        0
+      ],
+      "widgets_values_named": {
+        "tags": "流行改編爵士風格, 慢節奏爵士, 柔和鋼琴, 薩克斯風, 慵懶溫暖氛圍, 4/4拍, 高音質 (Jazz style adaptation, mellow saxophone, soft piano, warm acoustic bass, cozy vibes)",
+        "lyrics": "（選填）保留原曲唱腔與旋律請留空；若想替換歌詞請在此填入新歌詞",
+        "seed": 31,
+        "control_after_generate": "fixed",
+        "bpm": 190,
+        "duration": 60,
+        "timesignature": "4",
+        "language": "en",
+        "keyscale": "E minor",
+        "generate_audio_codes": true,
+        "cfg_scale": 2,
+        "temperature": 0.85,
+        "top_p": 0.9,
+        "top_k": 0,
+        "min_p": 0
+      }
+    },
+    {
+      "id": 78,
+      "type": "ModelSamplingAuraFlow",
+      "pos": [
+        920,
+        -670
+      ],
+      "size": [
+        330,
+        86
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 247
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            175
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ModelSamplingAuraFlow",
+        "cnr_id": "comfy-core",
+        "ver": "0.11.1",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        3
+      ],
+      "widgets_values_named": {
+        "shift": 3
+      }
+    },
+    {
+      "id": 18,
+      "type": "VAEDecodeAudio",
+      "pos": [
+        1300,
+        -670
+      ],
+      "size": [
+        225,
+        78
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 256
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 248
+        }
+      ],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            261
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecodeAudio",
+        "cnr_id": "comfy-core",
+        "ver": "0.11.1",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      }
+    },
+    {
+      "id": 3,
+      "type": "KSampler",
+      "pos": [
+        930,
+        -550
+      ],
+      "size": [
+        330,
+        286
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 175
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 254
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 119
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 249
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 258
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            256
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSampler",
+        "cnr_id": "comfy-core",
+        "ver": "0.11.1",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        31,
+        "fixed",
+        8,
+        1,
+        "euler",
+        "simple",
+        0.65
+      ],
+      "widgets_values_named": {
+        "seed": 31,
+        "control_after_generate": "fixed",
+        "steps": 8,
+        "cfg": 1,
+        "sampler_name": "euler",
+        "scheduler": "simple",
+        "denoise": 0.65
+      }
+    },
+    {
+      "id": 99,
+      "type": "PrimitiveNode",
+      "pos": [
+        -140,
+        -470
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "widget": {
+            "name": "seconds"
+          },
+          "links": [
+            251
+          ]
+        }
+      ],
+      "title": "Song Duration",
+      "properties": {
+        "Run widget replace on values": false
+      },
+      "widgets_values": [
+        60.0,
+        "fixed"
+      ],
+      "widgets_values_named": {
+        "value": 60.0,
+        "control_after_generate": "fixed"
+      }
+    },
+    {
+      "id": 47,
+      "type": "ConditioningZeroOut",
+      "pos": [
+        680,
+        30
+      ],
+      "size": [
+        225,
+        58
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 255
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            119
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ConditioningZeroOut",
+        "cnr_id": "comfy-core",
+        "ver": "0.11.1",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      }
+    },
+    {
+      "id": 102,
+      "type": "PrimitiveNode",
+      "pos": [
+        -140,
+        -290
+      ],
+      "size": [
+        270,
+        90
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "links": [
+            257,
+            258
+          ]
+        }
+      ],
+      "title": "seed",
+      "properties": {
+        "Run widget replace on values": false
+      },
+      "widgets_values": [
+        31,
+        "fixed"
+      ],
+      "widgets_values_named": {
+        "value": 31,
+        "control_after_generate": "fixed"
+      }
+    },
+    {
+      "id": 105,
+      "type": "MarkdownNote",
+      "pos": [
+        -680,
+        -710
+      ],
+      "size": [
+        420,
+        482.09375
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "# ACE-Step 1.5 AIO 原曲改編工作流（防爆顯存優化版）\n\n### 為什麼先前會出現「GPU 記憶體不足」？\n您載入的原曲長達近 5 分鐘（291 秒），音訊包含近 1,300 萬個採樣點。\n音訊 VAE 若一次性處理 5 分鐘，會瞬間需要 20GB 以上顯存。\n因此本版本加入了 **`✂️ 音訊裁剪 (Trim Audio)`** 節點，截取精華段（預設 60 秒）進行改編！\n\n### 3 步操作指引：\n1. **【設定改編片段】**（在左側裁剪節點）：\n   - `start_index`（起始秒數）：設 `0.0` 從頭開始；若想直接改編熱血副歌，可設為 `55.0`。\n   - `duration`（改編時長）：建議維持 **`60.0` 秒**（最適合 8GB 顯卡且效果最緊湊）。\n2. **【填寫新風格】**：\n   在 `tags` 填寫目標曲風；`lyrics` 若想保留原唱旋律可留空，或只保留該 60 秒對應的歌詞。\n3. **【執行改編】**：\n   點擊 **執行 (Queue Prompt)** 即可順暢運算，不再報錯！"
+      ],
+      "widgets_values_named": {
+        "text": "# ACE-Step 1.5 AIO 原曲改編工作流（防爆顯存優化版）\n\n### 為什麼先前會出現「GPU 記憶體不足」？\n您載入的原曲長達近 5 分鐘（291 秒），音訊包含近 1,300 萬個採樣點。\n音訊 VAE 若一次性處理 5 分鐘，會瞬間需要 20GB 以上顯存。\n因此本版本加入了 **`✂️ 音訊裁剪 (Trim Audio)`** 節點，截取精華段（預設 60 秒）進行改編！\n\n### 3 步操作指引：\n1. **【設定改編片段】**（在左側裁剪節點）：\n   - `start_index`（起始秒數）：設 `0.0` 從頭開始；若想直接改編熱血副歌，可設為 `55.0`。\n   - `duration`（改編時長）：建議維持 **`60.0` 秒**（最適合 8GB 顯卡且效果最緊湊）。\n2. **【填寫新風格】**：\n   在 `tags` 填寫目標曲風；`lyrics` 若想保留原唱旋律可留空，或只保留該 60 秒對應的歌詞。\n3. **【執行改編】**：\n   點擊 **執行 (Queue Prompt)** 即可順暢運算，不再報錯！"
+      },
+      "color": "#222",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 106,
+      "type": "SaveAudioAdvanced",
+      "pos": [
+        1560,
+        -660
+      ],
+      "size": [
+        270,
+        150
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 261
+        }
+      ],
+      "outputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null
+        }
+      ],
+      "properties": {},
+      "widgets_values": [
+        "audio/ACE_Step1.5_AIO_改編音樂",
+        "flac"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "audio/ACE_Step1.5_AIO_改編音樂",
+        "format": "flac"
+      }
+    },
+    {
+      "id": 120,
+      "type": "LoadAudio",
+      "pos": [
+        -210,
+        -220
+      ],
+      "size": [
+        430,
+        170
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            270
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadAudio",
+        "cnr_id": "comfy-core",
+        "ver": "0.11.1"
+      },
+      "widgets_values": [
+        "input_song.mp3",
+        null,
+        null
+      ],
+      "widgets_values_named": {
+        "audio": "input_song.mp3",
+        "upload": null
+      },
+      "title": "🎵 原曲載入 (Load Audio)"
+    },
+    {
+      "id": 121,
+      "type": "VAEEncodeAudio",
+      "pos": [
+        270,
+        160
+      ],
+      "size": [
+        280,
+        90
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 272
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 271
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            249
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEEncodeAudio",
+        "cnr_id": "comfy-core",
+        "ver": "0.11.1"
+      },
+      "title": "⚡ 原曲特徵提取 (VAE Encode)"
+    },
+    {
+      "id": 122,
+      "type": "TrimAudioDuration",
+      "pos": [
+        -210,
+        -10
+      ],
+      "size": [
+        430,
+        130
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 270
+        }
+      ],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            272
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "TrimAudioDuration",
+        "cnr_id": "comfy-core",
+        "ver": "0.11.1"
+      },
+      "widgets_values": [
+        0.0,
+        60.0
+      ],
+      "widgets_values_named": {
+        "start_index": 0.0,
+        "duration": 60.0
+      },
+      "title": "✂️ 音訊裁剪 (Trim Audio - 避免顯存爆滿)"
+    }
+  ],
+  "links": [
+    [
+      119,
+      47,
+      0,
+      3,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      175,
+      78,
+      0,
+      3,
+      0,
+      "MODEL"
+    ],
+    [
+      244,
+      97,
+      1,
+      94,
+      0,
+      "CLIP"
+    ],
+    [
+      247,
+      97,
+      0,
+      78,
+      0,
+      "MODEL"
+    ],
+    [
+      248,
+      97,
+      2,
+      18,
+      1,
+      "VAE"
+    ],
+    [
+      251,
+      99,
+      0,
+      94,
+      2,
+      "FLOAT"
+    ],
+    [
+      254,
+      94,
+      0,
+      3,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      255,
+      94,
+      0,
+      47,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      256,
+      3,
+      0,
+      18,
+      0,
+      "LATENT"
+    ],
+    [
+      257,
+      102,
+      0,
+      94,
+      1,
+      "INT"
+    ],
+    [
+      258,
+      102,
+      0,
+      3,
+      4,
+      "INT"
+    ],
+    [
+      261,
+      18,
+      0,
+      106,
+      0,
+      "AUDIO"
+    ],
+    [
+      249,
+      121,
+      0,
+      3,
+      3,
+      "LATENT"
+    ],
+    [
+      271,
+      97,
+      2,
+      121,
+      1,
+      "VAE"
+    ],
+    [
+      270,
+      120,
+      0,
+      122,
+      0,
+      "AUDIO"
+    ],
+    [
+      272,
+      122,
+      0,
+      121,
+      0,
+      "AUDIO"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "Step 1 - Load Model",
+      "bounding": [
+        -220,
+        -740,
+        448.09895833333337,
+        181.6
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "Step 2 - Duration",
+      "bounding": [
+        -220,
+        -540,
+        450,
+        170
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "Step 3 - Prompt",
+      "bounding": [
+        260,
+        -740,
+        640,
+        820
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 10,
+      "title": "Step 2 - 原曲載入與時長裁剪 (避免顯存爆滿)",
+      "bounding": [
+        -230,
+        -280,
+        470,
+        430
+      ],
+      "color": "#8A4F7D",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.9701648657879456,
+      "offset": [
+        -709.9339352506919,
+        970.3047567118876
+      ]
+    },
+    "frontendVersion": "1.51.9",
+    "workflowRendererVersion": "LG",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4
+}
