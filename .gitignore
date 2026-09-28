@@ -36,6 +36,9 @@ credentials.*
 !.claude/skills/
 
 # === 大型產出（影音圖）===
+*.mp4
+yilan_desks_mv/preview_checks/
+yilan_desks_mv/full_checks/
 outputs/**/*.mp4
 outputs/**/*.png
 outputs/**/*.jpg
