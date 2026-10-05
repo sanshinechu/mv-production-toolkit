@@ -43,6 +43,15 @@ def f0_to_hum(vocals: np.ndarray, sr: int, hop: int) -> np.ndarray:
     probability = np.nan_to_num(np.asarray(probability, dtype=float))
     valid = np.isfinite(f0) & np.asarray(voiced, dtype=bool) & (probability >= 0.12)
     active = bridge_short_gaps(valid, max_gap=6)  # approximately 70 ms at 22.05 kHz
+    # Sung consonants and dense accompaniment make pYIN briefly lose F0 in the
+    # choruses.  A hum should stay legato through those tiny holes, while the
+    # verse and genuine between-phrase rests remain untouched.
+    frame_times = librosa.frames_to_time(np.arange(len(f0)), sr=sr, hop_length=hop)
+    for chorus_start, chorus_end in ((67.59, 134.30), (179.13, 229.62)):
+        in_chorus = np.flatnonzero((frame_times >= chorus_start) & (frame_times < chorus_end))
+        if len(in_chorus):
+            first, last = int(in_chorus[0]), int(in_chorus[-1]) + 1
+            active[first:last] = bridge_short_gaps(valid[first:last], max_gap=24)  # about 280 ms
 
     # Estimate a stable pitch for brief gaps from nearby voiced frames.
     log_f0 = np.full_like(f0, np.nan)
@@ -57,7 +66,6 @@ def f0_to_hum(vocals: np.ndarray, sr: int, hop: int) -> np.ndarray:
                 continue
             log_f0[run] = np.interp(run, known, log_f0[known])
 
-    frame_times = librosa.frames_to_time(np.arange(len(f0)), sr=sr, hop_length=hop)
     sample_times = np.arange(len(vocals)) / sr
     frequency = np.zeros(len(vocals), dtype=np.float64)
     gate = np.zeros(len(vocals), dtype=np.float64)
