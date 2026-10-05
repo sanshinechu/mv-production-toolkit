@@ -112,3 +112,6 @@ outputs/
 
 # 本機大型工具與聲庫（OpenUtau 攜帶版、voicebank、各式 venv），134MB+，勿入庫
 tools/
+
+# 角色參考照片（不入庫）
+assets/characters/
