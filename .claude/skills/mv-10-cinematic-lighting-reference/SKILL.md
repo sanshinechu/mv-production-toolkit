@@ -2,7 +2,7 @@
 name: 電影感打光指令集
 description: 20 種專業的電影打光風格參考表，可直接用於 AI 圖片和影片生成提示詞
 triggers: 打光、lighting、電影感、照明、光影、燈光
-version: 1.1.0
+version: 1.2.1
 author: 羅東國小資訊組長
 ---
 
@@ -340,7 +340,7 @@ Noir standoff, high contrast black and white, hard shadows
 
 ---
 
-## ⚠️ 套用打光指令時一併加上（2026-10-09 引自山獅霸 AI 短片工作流實測經驗，見 `01_MV製作/docs/參考比對_山獅霸工作流.md`）
+## ⚠️ 套用打光指令時一併加上（2026-10-09 引自山獅霸 AI 短片工作流實測經驗，見 `docs/參考比對_山獅霸工作流.md`（01_MV製作 專案內））
 
 這些都是電影感用語，模型看到常會**自己加上下黑邊**，而且容易畫進多餘的人。貼打光指令時順手加：
 - `NO black letterbox bars`
