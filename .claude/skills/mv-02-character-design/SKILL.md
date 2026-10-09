@@ -2,9 +2,11 @@
 name: 主角造型設計
 description: 根據曲風和歌詞設計 MV 主角形象，提供英文影像提示詞和中文翻譯
 triggers: 角色、造型、人物設計、主角、角色設計
-version: 1.0.0
+version: 1.2.0
 author: 羅東國小資訊組長
 ---
+
+> 🛑 **生圖關卡（硬性）**：本 skill 先交出提示詞，並問使用者「要直接生圖嗎？」。**只有使用者明確說「直接生圖」，才呼叫任何生圖工具**；沒說就停在提示詞，不要自己生。（使用者偏好，見 `01_MV製作/AGENTS.md`「使用者偏好」）
 
 ## 👤 功能說明
 
@@ -205,13 +207,53 @@ A: 是的。不同工具的效果不同。我提供的提示詞會盡量通用�
 
 ---
 
+## 🔗 角色一致性錨點
+
+每次完成角色設計後，**必須**輸出以下格式的「角色一致性參考詞」，供 MV_03、MV_04、MV_06、MV_08、MV_09 直接貼入使用：
+
+```
+【角色一致性參考詞】
+[CHARACTER_REF] East Asian [性別], [髮型描述], [服裝描述], [氣質描述], consistent character appearance throughout all shots
+```
+
+範例：
+```
+【角色一致性參考詞】
+[CHARACTER_REF] East Asian woman, shoulder-length wavy chestnut hair, wearing cream linen shirt and sage green knit vest, gentle nostalgic atmosphere, consistent character appearance throughout all shots
+```
+
+> 在後續所有生成步驟中，將 `[CHARACTER_REF]` 的內容貼入提示詞開頭，確保每張圖片和每支影片的角色外觀完全一致。
+
+---
+
+## 🧍 生圖參考圖：單張半身照（必做）（2026-10-09 引自山獅霸 AI 短片工作流實測經驗，見 `01_MV製作/docs/參考比對_山獅霸工作流.md`）
+
+上面的 Split Screen 是**給人看**的設計稿。要拿去給生圖、生影片模型當參考時，**另外產一張單張圖**：
+
+- 單一人物、腰部以上半身、正面、灰色素背景、柔和均勻光、無道具、無文字。
+- **不要把 Split Screen、MV_04 拼好的總覽圖、轉面表這類多格圖當參考圖**——模型會把多格版面照抄成拼貼。
+
+參考圖英文提示詞範本：
+```
+Single portrait of [CHARACTER_REF], waist-up, facing camera, plain neutral grey background,
+soft even studio lighting, no props, no text
+```
+
+### 鎖定外觀詞要寫多細
+`[CHARACTER_REF]` 之後每一鏡都**整段照抄、不改寫、不縮寫**——每重寫一次，角色就漂一次。所以第一次就要寫到：
+- 髮型＋髮色＋瀏海、每一件衣服的顏色與材質、鞋子、配件（眼鏡、書包、髮夾）
+- **學生角色寫明年紀**：例如 `clearly an 11-year-old child, childish face, never a teenager`（不寫常常畫成高中生）
+- 吉祥物、頭套、玩偶這類道具角色：寫明 `a lifeless prop whose sewn face never moves`，不然影片裡會眨眼
+
+---
+
 ## 📞 後續步驟
 
 角色設計完成後，建議：
 
 1. **使用 ai-media-generator** → 根據提示詞生成角色圖片
-2. **MV_03 影像生成** → 為場景創作視覺描述
-3. **MV_04 九宮格分鏡設計** → 基於角色設計生成分鏡圖
+2. **MV_03 影像生成** → 為場景創作視覺描述（貼入角色一致性參考詞）
+3. **MV_04 九宮格分鏡設計** → 基於角色設計生成分鏡圖（貼入角色一致性參考詞）
 
 ---
 

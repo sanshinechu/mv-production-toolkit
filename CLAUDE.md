@@ -51,6 +51,17 @@
 - 永遠使用台北時間（Asia/Taipei, UTC+8）
 - 日期計算、時間戳記、檔案命名等操作前，先執行 `date` 確認系統時間
 
+## 使用者偏好（與 AGENTS.md 同步）
+
+- **生圖關卡**：凡是流程進入圖片相關步驟時，先提供生圖提示詞，並詢問使用者是否要直接生圖；只有當使用者明確表示「直接生圖」時，才使用生圖工具產生圖片。（2026-10-09 補進本檔；原本只寫在 AGENTS.md，Claude 這邊沒被要求到）
+
+## MV skill 的正本與同步
+
+- 12 支 MV skill（`MV_WORKFLOW_GUIDE`、`mv-01`～`mv-12`）的**正本在 dotfiles 的 `.skills/`**，不在本專案。
+- 改完正本後跑 `bash scripts/sync_mv_skills.sh --apply`，把新版複製到本專案的 `.claude/skills/`（Claude）與 `.agents/skills/`（Codex，自動把工具名 Claude 換成 Codex）。
+- **不要直接改本專案這兩份副本**，下次同步會被覆蓋。本專案獨有的 skill（`mv-production-packaging`、`mv-subtitle-scene-sync`、`mv-03-scene-prompt-generation`、`media-generation`、`youtube-publisher`）不受同步影響，照舊直接改。
+- 組裝與檢查腳本：`scripts/make_mv.py`、`scripts/review_mv.py`。
+
 ---
 
 # MV 製作 12 步工作流程
@@ -537,11 +548,12 @@
 ffmpeg -i music.mp3 -i video1.mp4 -i video2.mp4 -i video3.mp4 \
   -i video4.mp4 -i video5.mp4 -i video6.mp4 \
   -filter_complex "[0:a]aformat=sample_rates=44100[a];[1:v][2:v][3:v][4:v][5:v][6:v]concat=n=6:v=1:a=0[v]" \
-  -map "[v]" -map "[a]" -c:v libx264 -c:a aac -shortest output.mp4
+  -map "[v]" -map "[a]" -c:v libx264 -c:a aac -t <影片總秒數> output.mp4
 ```
 
 **重要注意**
-- 不要使用 `-shortest` 參數，會截斷音樂
+- 不要使用 `-shortest` 參數，會截斷音樂；改用 `-t <影片總秒數>` 明確指定長度，並先用 `ffprobe` 確認音樂不比影片短
+- Ken Burns 靜圖路線直接用 `scripts/make_mv.py`（已內建長度檢查與兩段式響度），做完跑 `scripts/review_mv.py`
 - 確保視頻編碼一致（都用 h.264 等）
 - 檢查音頻同步
 - 驗證最終時長與音樂時長相符
