@@ -1,0 +1,2 @@
+# shell 腳本一律 LF：core.autocrlf=true 的機器 checkout 成 CRLF 時 bash 會壞（2026-10-09）
+*.sh text eol=lf
