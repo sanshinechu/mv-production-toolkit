@@ -138,6 +138,31 @@ def make_clip(ffmpeg, img_path, anim, trans_in, trans_out, dur, out_path, tmp_di
         return False
     return True
 
+def find_video(videos_dir, prefix):
+    """videos-raw/ 裡同 cut 編號的影片（影片分流兩條路的成品都放這，檔名 cutNN_*.mp4）。_old/ 不算。"""
+    if not videos_dir:
+        return None
+    num = prefix.split("_")[0]
+    m = sorted(p for p in videos_dir.glob(f"{num}*.mp4") if re.match(rf"{num}(\D|$)", p.stem))
+    if len(m) > 1:
+        print(f"  [ERR] {num} 有 {len(m)} 支影片，留一支、其餘移到 _old/：{[p.name for p in m]}"); sys.exit(1)
+    return m[0] if m else None
+
+def make_video_clip(ffmpeg, video, trans_in, trans_out, dur, out_path):
+    """影片素材：裁到分鏡秒數、縮放裁切到輸出尺寸、丟掉原聲（H3／Veo 自己配的聲音不要）、套同一套淡入淡出。"""
+    have = probe_duration(video)
+    if have + 0.05 < dur:
+        print(f"  [ERR] {video.name} 只有 {have:.2f}s，分鏡要 {dur}s（先跑 collect_videos.py --check）"); return False
+    vf = (f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,crop={WIDTH}:{HEIGHT},"
+          f"fps={FPS},setsar=1,{build_fade_filter(trans_in, trans_out, dur, FPS)}")
+    r = subprocess.run([str(ffmpeg), "-y", "-i", str(video), "-t", str(dur), "-an", "-vf", vf,
+                        "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "fast", "-crf", "18", str(out_path)],
+                       capture_output=True, text=True, encoding="utf-8", errors="ignore")
+    if r.returncode != 0:
+        print(f"  [FFMPEG ERROR] {r.stderr[-400:]}")
+        return False
+    return True
+
 def probe_duration(path):
     r = subprocess.run([shutil.which("ffprobe") or "ffprobe", "-v", "error",
                         "-show_entries", "format=duration",
@@ -179,18 +204,29 @@ def normalize_audio(ffmpeg, music, total_dur, tmp_dir):
     return final
 
 def main():
+    global STORYBOARD, WIDTH, HEIGHT
     p = argparse.ArgumentParser()
-    p.add_argument("--shots", required=True)
+    p.add_argument("--shots", help="分鏡圖資料夾（Ken Burns 用；全部鏡頭都有影片時可省略）")
+    p.add_argument("--videos", help="影片素材資料夾 videos-raw/（影片分流兩條路的成品，cutNN_*.mp4）")
+    p.add_argument("--storyboard", help="mv-11 的 storyboard_vN.md；不給就用本檔上方的 STORYBOARD")
+    p.add_argument("--size", default=f"{WIDTH}x{HEIGHT}", help="輸出尺寸，成品 1080p 用 1920x1080（預設 1280x720）")
     p.add_argument("--music", required=True)
     p.add_argument("--out",   required=True)
     args = p.parse_args()
+    if args.storyboard:
+        import storyboard_md
+        STORYBOARD = storyboard_md.load(args.storyboard)
+    WIDTH, HEIGHT = map(int, args.size.lower().split("x"))
+    if not args.shots and not args.videos:
+        p.error("--shots 和 --videos 至少要給一個")
 
     ffmpeg = find_ffmpeg()
     if not ffmpeg:
         print("[ERR] ffmpeg 不在 PATH"); sys.exit(1)
     print(f"  ffmpeg: {ffmpeg}")
 
-    shots = Path(args.shots).resolve()
+    shots = Path(args.shots).resolve() if args.shots else None
+    videos = Path(args.videos).resolve() if args.videos else None
     music = Path(args.music).resolve()
     out_path = Path(args.out).resolve()   # 絕對路徑：concat 清單裡的相對路徑會以清單檔所在處為準
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -215,15 +251,21 @@ def main():
     print(f"  解析度：{WIDTH}x{HEIGHT}  FPS：{FPS}")
 
     # Step 1: 12 個 cut
-    print(f"\n  Step 1: 生成 Ken Burns 短片...")
+    print(f"\n  Step 1: 每鏡做成短片（有影片用影片，沒有才用圖做 Ken Burns）...")
     clip_paths = []
     for i, (prefix, anim, t_in, t_out, dur) in enumerate(STORYBOARD):
-        img = find_image(shots, prefix)
-        if not img:
-            print(f"  [ERR] 找不到素材：{prefix}"); sys.exit(1)
         clip = tmp / f"clip_{i:02d}.mp4"
-        print(f"  [{i+1:02d}/{len(STORYBOARD)}] {prefix} -> {anim} ({t_in}/{t_out}) {dur}s")
-        if not make_clip(ffmpeg, img, anim, t_in, t_out, dur, clip, tmp):
+        vid = find_video(videos, prefix)
+        if vid:
+            print(f"  [{i+1:02d}/{len(STORYBOARD)}] {prefix} -> 影片 {vid.name} ({t_in}/{t_out}) {dur}s")
+            ok = make_video_clip(ffmpeg, vid, t_in, t_out, dur, clip)
+        else:
+            img = find_image(shots, prefix) if shots else None
+            if not img:
+                print(f"  [ERR] 找不到素材：{prefix}（videos-raw 沒影片、分鏡圖也沒有）"); sys.exit(1)
+            print(f"  [{i+1:02d}/{len(STORYBOARD)}] {prefix} -> 圖 {anim} ({t_in}/{t_out}) {dur}s")
+            ok = make_clip(ffmpeg, img, anim, t_in, t_out, dur, clip, tmp)
+        if not ok:
             sys.exit(1)
         clip_paths.append(clip)
 

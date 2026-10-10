@@ -104,7 +104,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("video")
     ap.add_argument("--music", help="原始音樂檔，用來比對歌長與分鏡加總")
+    ap.add_argument("--storyboard", help="跟 make_mv.py --storyboard 同一份 storyboard_vN.md（不給就用 make_mv.py 內建的）")
     args = ap.parse_args()
+    if args.storyboard:
+        import storyboard_md
+        make_mv.STORYBOARD = storyboard_md.load(args.storyboard)
 
     if not shutil.which("ffmpeg"):
         sys.exit("[ERR] ffmpeg 不在 PATH")

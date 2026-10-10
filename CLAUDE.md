@@ -62,6 +62,10 @@
 - **不要直接改本專案這兩份副本**，下次同步會被覆蓋。本專案獨有的 skill（`mv-production-packaging`、`mv-subtitle-scene-sync`、`mv-03-scene-prompt-generation`、`media-generation`、`youtube-publisher`）不受同步影響，照舊直接改。
 - 組裝與檢查腳本：`scripts/make_mv.py`、`scripts/review_mv.py`。
 
+- 影片素材收件與檢查：`scripts/collect_videos.py`；三支腳本共用 `scripts/storyboard_md.py` 讀 mv-11 分鏡表。
+
+> 🔀 **影片分流**：影片提示詞三方共審「無意見」後，整支 MV 選 Colab H3（Claude 代跑）或 Google Flow（老師自己生），規則唯一正本在 [docs/影片分流策略.md](docs/影片分流策略.md)，這裡不抄內容。
+
 ---
 
 # MV 製作 12 步工作流程
