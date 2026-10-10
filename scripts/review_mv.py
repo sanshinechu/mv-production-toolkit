@@ -101,6 +101,8 @@ def in_transition(a, b, shots):
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")   # 同 make_mv.py：避免 --help 中文亂碼
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
     ap.add_argument("video")
     ap.add_argument("--music", help="原始音樂檔，用來比對歌長與分鏡加總")

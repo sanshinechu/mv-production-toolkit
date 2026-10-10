@@ -60,6 +60,8 @@ def load(path):
 
 if __name__ == "__main__":
     import argparse
+    import sys
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description="解析 mv-11 分鏡表，印出每鏡（前綴, 動畫, 進場, 離場, 秒數）與總長")
     ap.add_argument("storyboard", help="storyboard_vN.md")
     a = ap.parse_args()

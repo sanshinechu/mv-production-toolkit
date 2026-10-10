@@ -1,4 +1,29 @@
-# 115 Dancing and Music MV
+# 01_MV製作（mv-production-toolkit）
+
+AI MV 製作工具箱：12 支 MV skill 的專案副本、三方共審接點、Colab H3／Google Flow 影片分流、組裝與檢查腳本。
+
+## 現行流程（2026-10）
+
+```
+新專案       python scripts/new_mv.py "<MV名>"  → outputs/<MV名>/（照裡面 README 的進度檢核做）
+企劃～影片提示詞  15_ai共筆工作流 cowrite --flow mv（影片提示詞為審核模式，三家「無意見」）
+分鏡表       mv-11 → outputs/<MV名>/storyboard_vN.md（所有腳本共用）
+影片分流 🅰  Colab H3：--flow mv-h3 審核 → h3_specs_from_review.py → h3_batch.py（Claude 經 colab_bridge.py 代跑）
+         🅱  Google Flow：--flow mv-flow 審核 → 老師在 Flow 生成
+收片檢查     collect_videos.py（1920×1080、24 fps、秒數、缺鏡）
+組裝         make_mv.py --videos --storyboard --size 1920x1080 → review_mv.py
+⛔ 人工抽幀  老師看 review/ 兩張圖說 OK 才算完成 → 打包上傳
+```
+
+- **影片路線唯一依據**：[docs/影片分流策略.md](docs/影片分流策略.md)（其他文件只連過去，不抄）
+- 畫面規範：[docs/影片製作基本原則.md](docs/影片製作基本原則.md)
+- 單一 MV 範本：[MV專案範本/](MV專案範本/)
+- MV skill 正本在 dotfiles `.skills/`，同步方式見 [CLAUDE.md](CLAUDE.md)「MV skill 的正本與同步」
+- 舊流程（10 步、第二版、舊專案範本、九宮格大圖、Wan 本機）都在 [docs/_歷史/](docs/_歷史/)，**不要照著做**
+
+---
+
+## 網頁介面（舊版 12 步導覽，仍可用）
 
 這是一個 AI MV 製作流程指南專案，目前包含 Markdown 指南與靜態網頁介面。
 
@@ -38,10 +63,9 @@
 - `database.rules.json`：Realtime Database 安全規則（網頁實際使用）
 - `firestore.rules`：Firestore 安全規則（備用，前端未使用）
 - `firestore.indexes.json`：Firestore 索引設定（備用）
-- `MV製作流程指南_10步驟.md`：原始指南
-- `MV製作流程指南_第二版.md`：整理後的 SOP 版本
+- 舊版指南已移到 `docs/_歷史/`
 
-## MV 素材命名建議
+## MV 素材命名建議（舊網頁版；新專案改用 `MV專案範本/` 的結構）
 
 - `01_歌詞與曲風.md`
 - `02_主角設計_prompt.md`

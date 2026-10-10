@@ -70,6 +70,9 @@
 
 # MV 製作 12 步工作流程
 
+> 📌 **2026-10 現行做法看 [README.md](README.md)「現行流程」**：新專案用 `scripts/new_mv.py`、影片提示詞走三方審核、**影片怎麼生成一律以 [docs/影片分流策略.md](docs/影片分流策略.md) 為準**。
+> 下面這份 12 步保留作為各步驟的說明與提示詞參考；其中 Step 7～10 的 Kling／Hailuo／Seedance、DaVinci 調色、手寫 FFmpeg 組裝是**舊做法**，與分流策略衝突時以分流策略為準。
+
 ## 工作流程概覽
 
 ```
@@ -397,6 +400,8 @@
 ---
 
 ### 🎯 階段 2️⃣：視覺生成
+
+> ⚠️ 本階段（Step 7～10）的工具與指令是舊做法。現行：🅰 Colab H3＋AI 放大 或 🅱 Google Flow → `collect_videos.py` → `make_mv.py --videos` → `review_mv.py` → 人工抽幀，見 [docs/影片分流策略.md](docs/影片分流策略.md)。
 
 ---
 

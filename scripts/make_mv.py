@@ -226,6 +226,9 @@ def normalize_audio(ffmpeg, music, total_dur, tmp_dir):
 
 def main():
     global STORYBOARD, WIDTH, HEIGHT, ALLOW_LOWRES, ALLOW_FPS
+    # 2026-10-10：Windows 主控台／被別的程式（Codex 等）擷取輸出時預設 cp950，--help 的中文會亂碼
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     p = argparse.ArgumentParser()
     p.add_argument("--shots", help="分鏡圖資料夾（Ken Burns 用；全部鏡頭都有影片時可省略）")
     p.add_argument("--videos", help="影片素材資料夾 videos-raw/（影片分流兩條路的成品，cutNN_*.mp4）")
