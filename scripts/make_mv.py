@@ -153,6 +153,13 @@ def make_video_clip(ffmpeg, video, trans_in, trans_out, dur, out_path):
     have = probe_duration(video)
     if have + 0.05 < dur:
         print(f"  [ERR] {video.name} 只有 {have:.2f}s，分鏡要 {dur}s（先跑 collect_videos.py --check）"); return False
+    # 2026-10-10 檢視意見：「先 --check 再組裝」只是約定，這裡自己擋——低於輸出解析度的影片會被硬放大混進成片
+    w, h, fps = probe_video(video)
+    if (w < WIDTH or h < HEIGHT) and not ALLOW_LOWRES:
+        print(f"  [ERR] {video.name} 是 {w}×{h}，低於輸出 {WIDTH}×{HEIGHT}（Colab 要先跑 upscale.py；"
+              "真的要硬放大才加 --allow-lowres）"); return False
+    if abs(fps - FPS) > 0.1 and not ALLOW_FPS:
+        print(f"  [ERR] {video.name} 是 {fps} fps，不是 {FPS}（轉換會掉格或重複格；確定要用才加 --allow-fps）"); return False
     vf = (f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,crop={WIDTH}:{HEIGHT},"
           f"fps={FPS},setsar=1,{build_fade_filter(trans_in, trans_out, dur, FPS)}")
     r = subprocess.run([str(ffmpeg), "-y", "-i", str(video), "-t", str(dur), "-an", "-vf", vf,
@@ -162,6 +169,20 @@ def make_video_clip(ffmpeg, video, trans_in, trans_out, dur, out_path):
         print(f"  [FFMPEG ERROR] {r.stderr[-400:]}")
         return False
     return True
+
+ALLOW_LOWRES = False
+ALLOW_FPS = False
+
+def probe_video(path):
+    r = subprocess.run([shutil.which("ffprobe") or "ffprobe", "-v", "error", "-select_streams", "v:0",
+                        "-show_entries", "stream=width,height,r_frame_rate", "-of", "csv=p=0", str(path)],
+                       capture_output=True, text=True)
+    try:
+        w, h, rate = r.stdout.strip().split(",")[:3]
+        num, _, den = rate.partition("/")
+        return int(w), int(h), round(float(num) / float(den or 1), 2)
+    except ValueError:
+        print(f"[ERR] 讀不到影片規格：{path}"); sys.exit(1)
 
 def probe_duration(path):
     r = subprocess.run([shutil.which("ffprobe") or "ffprobe", "-v", "error",
@@ -204,15 +225,18 @@ def normalize_audio(ffmpeg, music, total_dur, tmp_dir):
     return final
 
 def main():
-    global STORYBOARD, WIDTH, HEIGHT
+    global STORYBOARD, WIDTH, HEIGHT, ALLOW_LOWRES, ALLOW_FPS
     p = argparse.ArgumentParser()
     p.add_argument("--shots", help="分鏡圖資料夾（Ken Burns 用；全部鏡頭都有影片時可省略）")
     p.add_argument("--videos", help="影片素材資料夾 videos-raw/（影片分流兩條路的成品，cutNN_*.mp4）")
     p.add_argument("--storyboard", help="mv-11 的 storyboard_vN.md；不給就用本檔上方的 STORYBOARD")
     p.add_argument("--size", default=f"{WIDTH}x{HEIGHT}", help="輸出尺寸，成品 1080p 用 1920x1080（預設 1280x720）")
+    p.add_argument("--allow-lowres", action="store_true", help="允許低於輸出解析度的影片（會被硬放大，畫質差）")
+    p.add_argument("--allow-fps", action="store_true", help=f"允許不是 {FPS} fps 的影片")
     p.add_argument("--music", required=True)
     p.add_argument("--out",   required=True)
     args = p.parse_args()
+    ALLOW_LOWRES, ALLOW_FPS = args.allow_lowres, args.allow_fps
     if args.storyboard:
         import storyboard_md
         STORYBOARD = storyboard_md.load(args.storyboard)

@@ -59,6 +59,11 @@ def load(path):
 
 
 if __name__ == "__main__":
-    import sys
-    for row in load(sys.argv[1]):
+    import argparse
+    ap = argparse.ArgumentParser(description="解析 mv-11 分鏡表，印出每鏡（前綴, 動畫, 進場, 離場, 秒數）與總長")
+    ap.add_argument("storyboard", help="storyboard_vN.md")
+    a = ap.parse_args()
+    rows = load(a.storyboard)
+    for row in rows:
         print(row)
+    print(f"共 {len(rows)} 鏡，總長 {round(sum(r[4] for r in rows), 2)} 秒")

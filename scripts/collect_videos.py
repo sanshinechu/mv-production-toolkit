@@ -7,7 +7,8 @@ r"""影片分流的收件與交件前檢查（規則見 docs/影片分流策略.
 
 - 搬回：colab_mv/outputs/<MV名>/cutNN/clip_1080p.mp4 → outputs/<MV名>/videos-raw/cutNN_<短名>.mp4
   （同編號已有舊檔就先移到 videos-raw/_old/<時間>/，不刪）
-- 檢查：分鏡表每一鏡都要有「剛好一支」cutNN*.mp4、秒數 ≥ 分鏡秒數、1920×1080；多出來的檔、fps 不是 24 只警告
+- 檢查：分鏡表每一鏡都要有「剛好一支」cutNN*.mp4、秒數 ≥ 分鏡秒數、1920×1080、24 fps；多出來的檔只警告
+  （make_mv.py 組裝時會再對實際採用的影片擋一次解析度與 fps，不靠「記得先跑 --check」）
 - colab_mv 位置從專案根目錄的 colab_mv.lnk 解析（各機碟號不同，不寫死；Drive 共用捷徑在本機是 .lnk）
 有錯誤 exit 1。
 """
@@ -94,10 +95,10 @@ def check(sb, raw):
             errs.append(f"{line} → 不是 {W}×{H}")
         elif d + 0.05 < dur:
             errs.append(f"{line} → 秒數不夠")
+        elif abs(fps - 24) > 0.1:
+            errs.append(f"{line} → 不是 24 fps（make_mv.py 也會擋；確定要用得加 --allow-fps）")
         else:
             print(f"  ✓ {line}")
-        if fps and abs(fps - 24) > 0.1:
-            warns.append(f"{m[0].name} 是 {fps} fps（組裝會轉成 24，動作可能略頓）")
     for p in raw.glob("*.mp4"):
         mm = re.match(r"(cut\d+)", p.stem)
         if not mm or mm.group(1) not in want:
