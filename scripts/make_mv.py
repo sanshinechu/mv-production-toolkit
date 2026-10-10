@@ -242,7 +242,7 @@ def main():
     ALLOW_LOWRES, ALLOW_FPS = args.allow_lowres, args.allow_fps
     if args.storyboard:
         import storyboard_md
-        STORYBOARD = storyboard_md.load(args.storyboard)
+        STORYBOARD = storyboard_md.load_or_exit(args.storyboard)
     WIDTH, HEIGHT = map(int, args.size.lower().split("x"))
     if not args.shots and not args.videos:
         p.error("--shots 和 --videos 至少要給一個")

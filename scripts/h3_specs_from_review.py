@@ -40,6 +40,8 @@ def load_h3(session):
     if not p.is_absolute():
         p = RECORDS / p
     f = p / "session.json" if p.is_dir() else p
+    if not f.is_file():
+        sys.exit(f"[ERR] 找不到共修紀錄：{f}（給資料夾名就到 {RECORDS} 底下找）")
     s = json.loads(f.read_text(encoding="utf-8"))
     st = next((x for x in s["stages"] if x["name"] == STAGE), None)
     if not st:
@@ -57,7 +59,8 @@ def load_lint(tools):
 
 
 def main():
-    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
     ap.add_argument("session", help="H3 分鏡那份共修的資料夾名（在 工作筆記本/AI共修紀錄/ 底下）或完整路徑")
     ap.add_argument("--mv", required=True, help="MV 名稱＝colab_mv/inputs/ 底下的資料夾名")
@@ -66,7 +69,7 @@ def main():
     a = ap.parse_args()
 
     text = load_h3(a.session)
-    sb = {p.split("_")[0]: d for p, _a, _i, _o, d in storyboard_md.load(a.storyboard)}
+    sb = {p.split("_")[0]: d for p, _a, _i, _o, d in storyboard_md.load_or_exit(a.storyboard)}
     colab = colab_dir()
     h3 = load_lint(colab / "tools")
     errs, specs, styles = [], {}, set()

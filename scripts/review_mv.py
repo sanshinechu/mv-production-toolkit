@@ -110,7 +110,7 @@ def main():
     args = ap.parse_args()
     if args.storyboard:
         import storyboard_md
-        make_mv.STORYBOARD = storyboard_md.load(args.storyboard)
+        make_mv.STORYBOARD = storyboard_md.load_or_exit(args.storyboard)
 
     if not shutil.which("ffmpeg"):
         sys.exit("[ERR] ffmpeg 不在 PATH")

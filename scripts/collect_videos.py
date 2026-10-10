@@ -112,13 +112,14 @@ def check(sb, raw):
 
 
 def main():
-    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
     ap.add_argument("mv", help="MV 名稱＝outputs/ 與 colab_mv/outputs/ 底下的資料夾名")
     ap.add_argument("--storyboard", required=True, help="mv-11 的 storyboard_vN.md")
     ap.add_argument("--check", action="store_true", help="只檢查（Flow 路線用），不從 Colab 搬")
     a = ap.parse_args()
-    sb = storyboard_md.load(a.storyboard)
+    sb = storyboard_md.load_or_exit(a.storyboard)
     raw = ROOT / "outputs" / a.mv / "videos-raw"
     raw.mkdir(parents=True, exist_ok=True)
     if not a.check:

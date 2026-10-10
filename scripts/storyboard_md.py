@@ -48,7 +48,12 @@ def load(path):
         n = int(m.group(1))
         short = re.sub(r"^\s*(?:cut)?\s*\d+[_\s-]*", "", raw, flags=re.I).strip()
         prefix = f"cut{n:02d}" + (f"_{short}" if re.fullmatch(r"[A-Za-z0-9_]+", short or "-") else "")
-        dur = float(re.search(r"[\d.]+", col(r, "秒數")).group(0))
+        sec = re.search(r"\d+(?:\.\d+)?", col(r, "秒數"))
+        if not sec:
+            raise ValueError(f"cut{n:02d} 的秒數尚未填寫（分鏡表「秒數」欄是空的或不是數字：{col(r, '秒數')!r}）")
+        dur = float(sec.group(0))
+        if dur <= 0:
+            raise ValueError(f"cut{n:02d} 的秒數是 {dur}，要大於 0")
         anim = col(r, "動畫").lower()
         anim = next((a for a in ANIMS if a in anim), "zoom_in")
         tr = [t.strip().lower() for t in re.split(r"[/／、,]", col(r, "轉場"))]
@@ -58,14 +63,25 @@ def load(path):
     return out
 
 
+def load_or_exit(path):
+    """給命令列腳本用：分鏡表沒填好就印一行中文提示並結束，不丟 Python 例外（make_mv／review_mv／collect_videos／h3_specs_from_review 共用）。"""
+    import sys
+    for s in (sys.stdout, sys.stderr):
+        s.reconfigure(encoding="utf-8", errors="replace")
+    try:
+        return load(path)
+    except FileNotFoundError:
+        sys.exit(f"[ERR] 找不到分鏡表：{path}")
+    except ValueError as e:
+        sys.exit(f"[ERR] 分鏡表 {Path(path).name}：{e}")
+
+
 if __name__ == "__main__":
     import argparse
-    import sys
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description="解析 mv-11 分鏡表，印出每鏡（前綴, 動畫, 進場, 離場, 秒數）與總長")
     ap.add_argument("storyboard", help="storyboard_vN.md")
     a = ap.parse_args()
-    rows = load(a.storyboard)
+    rows = load_or_exit(a.storyboard)
     for row in rows:
         print(row)
     print(f"共 {len(rows)} 鏡，總長 {round(sum(r[4] for r in rows), 2)} 秒")
