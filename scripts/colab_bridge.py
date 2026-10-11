@@ -25,7 +25,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 PORT = 8765
-COLAB_MCP = ["uvx", "git+https://github.com/googlecolab/colab-mcp"]
+COLAB_MCP = ["uvx", "--from", "git+https://github.com/googlecolab/colab-mcp", "colab-mcp"]
 
 
 def dump(x):
