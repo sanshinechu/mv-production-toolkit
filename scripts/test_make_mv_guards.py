@@ -64,6 +64,15 @@ class DialogSubtitleGuardTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 make_mv.validate_dialog_srt([(0.5, 2.0, "台詞")], [(1.0, 3.0)])
 
+    def test_accepts_dialog_lingering_for_reading_time(self):
+        # 字幕比口白晚 0.8 秒消失是正常字幕做法，不應被擋
+        make_mv.validate_dialog_srt([(1.0, 3.8, "台詞")], [(1.0, 3.0)])
+
+    def test_rejects_dialog_lingering_too_long(self):
+        with redirect_stdout(io.StringIO()):
+            with self.assertRaises(SystemExit):
+                make_mv.validate_dialog_srt([(1.0, 4.5, "台詞")], [(1.0, 3.0)])
+
     def test_rejects_dialog_without_voiceover(self):
         with redirect_stdout(io.StringIO()):
             with self.assertRaises(SystemExit):

@@ -79,7 +79,7 @@ python scripts/review_mv.py outputs/<MV名>/<MV名>_完整MV.mp4 --storyboard ou
 
 | 字幕類型 | 位置與樣式 | 時間軸規則 |
 |---|---|---|
-| **對白／口白字幕（Dialogue SRT）** | 畫面底部置中（MarginV 40）、白字黑邊、標準電影對白字級 | 嚴格對齊 `vo_cutNN.wav` 的起迄秒數；`make_mv.py` 會拒絕未完整落在任一 `vo[]` 區間的條目 |
+| **對白／口白字幕（Dialogue SRT）** | 畫面底部置中（MarginV 40）、白字黑邊、標準電影對白字級 | 對齊 `vo_cutNN.wav` 的起迄秒數；可比口白早 0.2 秒出現、晚 1 秒消失（留閱讀時間），超出這個範圍 `make_mv.py` 會拒絕（多半是對錯段或沒平移） |
 | **歌詞字幕（Lyrics SRT）** | 畫面底部偏上或左／右下角（或用暖黃／青色字區隔） | 歌詞 SRT 以歌曲開頭為 0，`make_mv.py --sub-lyrics` 自動平移 `+prologue_sec`（SRT 已對好成片時間軸就加 `--lyrics-offset 0`）；**跟口白時間重疊的歌詞條目自動拿掉**，畫面同一時間只留一種字幕 |
 
 ---

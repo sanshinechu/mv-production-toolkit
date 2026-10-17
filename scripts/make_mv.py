@@ -211,6 +211,10 @@ def run_ff(cmd):
 DUCK_ATTACK = 0.3   # 口白開始前幾秒開始壓音樂
 DUCK_RELEASE = 0.6  # 口白結束後幾秒推回（mv-14 規範）
 TIMELINE_TOLERANCE = 0.05
+# 對白字幕可比口白早一點出現、晚一點消失（觀眾要讀字的時間）。
+# 歌詞避讓已經把對白字幕自己的區間算進去，所以這裡放寬不會造成雙字幕（2026-10-17）。
+DIALOG_LEAD = 0.2   # 字幕最多比口白早出現幾秒
+DIALOG_TAIL = 1.0   # 字幕最多比口白晚消失幾秒
 
 
 def resolve_cue_path(p, base_dir):
@@ -280,7 +284,9 @@ def validate_mix_timeline(cues_data, total_dur, prologue_sec, epilogue_sec):
 
 
 def validate_dialog_srt(entries, vo_spans):
-    """對白字幕須完全落在口白音檔內，否則歌詞避讓無法保證字幕不打架。"""
+    """對白字幕要對得上某一段口白：起點不早於口白 DIALOG_LEAD 秒、終點不晚於口白結束後 DIALOG_TAIL 秒。
+    擋的是「字幕對錯段／整份沒平移」這種錯，不是要求字幕跟音檔逐毫秒等長——
+    字幕本來就常比語音多留一點閱讀時間，原本 0.05 秒容差會把正常做法誤擋。"""
     if not entries:
         return
     if not vo_spans:
@@ -289,12 +295,13 @@ def validate_dialog_srt(entries, vo_spans):
     invalid = []
     for index, (start, end, _text) in enumerate(entries, 1):
         covered = any(
-            start >= vo_start - TIMELINE_TOLERANCE
-            and end <= vo_end + TIMELINE_TOLERANCE
+            start >= vo_start - DIALOG_LEAD
+            and end <= vo_end + DIALOG_TAIL
             for vo_start, vo_end in vo_spans
         )
         if not covered:
-            invalid.append(f"對白字幕 #{index} {start:.3f}s–{end:.3f}s 未完整對齊任何 vo 音檔")
+            invalid.append(f"對白字幕 #{index} {start:.3f}s–{end:.3f}s 對不上任何 vo 口白"
+                           f"（容許早 {DIALOG_LEAD}s 出現、晚 {DIALOG_TAIL}s 消失）")
     if invalid:
         print("[ERR] 對白字幕時間軸不合法：")
         for error in invalid:
@@ -551,7 +558,7 @@ def main():
         validate_dialog_srt(dialog_entries, vo_spans)
     if args.sub_lyrics:
         offset = prologue_sec if args.lyrics_offset is None else args.lyrics_offset
-        # 對白 SRT 允許毫秒四捨五入容差時，仍要把它自身區間列入避讓，不能留下 1 格雙字幕。
+        # 對白字幕可比口白多留閱讀時間，所以要把字幕自身區間也列入避讓，否則會留下雙字幕。
         blocked_spans = vo_spans + [(s, e) for s, e, _ in dialog_entries]
         n_keep, n_drop = prepare_lyrics_srt(Path(args.sub_lyrics), tmp / "lyrics.srt", offset, blocked_spans)
         print(f"       歌詞字幕：平移 {offset:+.2f}s，{n_keep} 條；與口白重疊拿掉 {n_drop} 條")
