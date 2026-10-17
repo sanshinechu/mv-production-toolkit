@@ -5,7 +5,7 @@ review_mv.py — MV 成片自動檢查（讀 make_mv.py 的 STORYBOARD）
 交給人看之前先自己審一遍。數字只是警示，抽格圖和切點圖一定要人逐張看。
 
 檢查項目：
-  0 結構    分鏡秒數加總 = 成片長度 = 音樂長度（給 --music 才比）
+  0 結構    分鏡秒數加總 = 成片長度 = 音樂長度（給 --music 才比；微電影扣掉片頭／片尾戲）
   1 逐鏡抽格 每鏡在「淡入淡出之外」平均抽 4 格拼成總覽圖 → 看多手多腳、臉崩、亂碼字、黑邊
   2 動態    每鏡頭尾畫面差多少，太小代表 Ken Burns 沒套上（畫面整段不動）
   3 黑畫面／定格 排除轉場本來就有的黑，只回報「不該黑的地方黑了」「不該停的地方停了」
@@ -14,6 +14,7 @@ review_mv.py — MV 成片自動檢查（讀 make_mv.py 的 STORYBOARD）
 
 用法：
   python review_mv.py <成片.mp4> --music <原曲.mp3>
+  微電影：加 --audio-cues <audio_cues.json>（或 --prologue/--epilogue），跟 make_mv.py 給的一樣
   （要跟產生這支片的 make_mv.py 同一份 STORYBOARD；本檔與 make_mv.py 放同一個資料夾）
 
 輸出：成片旁的 review\ 資料夾
@@ -107,6 +108,9 @@ def main():
     ap.add_argument("video")
     ap.add_argument("--music", help="原始音樂檔，用來比對歌長與分鏡加總")
     ap.add_argument("--storyboard", help="跟 make_mv.py --storyboard 同一份 storyboard_vN.md（不給就用 make_mv.py 內建的）")
+    ap.add_argument("--audio-cues", help="微電影：跟 make_mv.py 同一份 audio_cues.json（讀片頭／片尾戲秒數）")
+    ap.add_argument("--prologue", type=float, default=None, help="微電影：片頭戲秒數（蓋過 audio_cues.json）")
+    ap.add_argument("--epilogue", type=float, default=None, help="微電影：片尾戲秒數（蓋過 audio_cues.json）")
     args = ap.parse_args()
     if args.storyboard:
         import storyboard_md
@@ -134,12 +138,19 @@ def main():
                      "（音樂比分鏡短時 -shortest 會把片尾切掉）")
     if not a_streams:
         warns.append("結構：成片沒有音軌")
+    cues = json.loads(Path(args.audio_cues).read_text(encoding="utf-8-sig")) if args.audio_cues else {}
+    pro = args.prologue if args.prologue is not None else float(cues.get("prologue_sec", 0.0))
+    epi = args.epilogue if args.epilogue is not None else float(cues.get("epilogue_sec", 0.0))
+    song_window = round(sb_total - pro - epi, 2)
+    if pro or epi:
+        out["pass0"].update(prologue=pro, epilogue=epi, song_window=song_window)
     if args.music:
         m_dur = float(probe(args.music).get("format", {}).get("duration", 0))
         out["pass0"]["music_duration"] = round(m_dur, 2)
-        if abs(m_dur - sb_total) > DUR_TOL:
-            warns.append(f"結構：音樂 {m_dur:.2f}s 跟分鏡加總 {sb_total}s 差 {m_dur - sb_total:+.2f}s"
-                         "（MV_11 規定分鏡加總要等於歌長）")
+        if abs(m_dur - song_window) > DUR_TOL:
+            extra = f"（扣掉片頭 {pro}s／片尾 {epi}s 後 {song_window}s）" if (pro or epi) else ""
+            warns.append(f"結構：音樂 {m_dur:.2f}s 跟分鏡加總 {sb_total}s{extra} 差 {m_dur - song_window:+.2f}s"
+                         "（MV_11 規定分鏡加總要等於歌長＋片頭＋片尾）")
 
     # ---- 1 逐鏡抽格：只抽乾淨區，不然會抽到半黑的淡化格
     rows = []
@@ -221,7 +232,7 @@ def main():
 
     out["warnings"] = warns
     out["hints"] = [f"切點明暗差較大（經過淡入淡出，通常不刺眼，看切點圖確認氣氛有沒有斷掉）：{', '.join(jumps)}"] if jumps else []
-    out["not_checked"] = ["切點是否對拍（第二版）", "歌詞字幕對不對（第二版）", "字幕區淨空（make_mv 目前不燒字幕）",
+    out["not_checked"] = ["切點是否對拍（第二版）", "歌詞字幕對不對（第二版）", "字幕區淨空、字級、雙層字幕有沒有疊（有燒字幕時看抽幀）",
                           "多手多腳、臉崩、亂碼字、黑邊 → 只能人看 pass1 圖"]
     (rv / f"{stem}_review.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
 

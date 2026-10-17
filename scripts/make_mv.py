@@ -9,6 +9,9 @@ make_mv.py — 純 ffmpeg 組裝 MV（《那些年，還在》12 cut 版）
 4. 輸出 1280x720 MP4
 5. 做完跑 review_mv.py 自動檢查（抽格、動態、黑畫面、響度、切點）
 
+微電影（mv-13／mv-14，2026-10-17）：--audio-cues 讀片頭／片尾戲秒數、口白（音樂平滑閃避）與環境音；
+--sub-lyrics／--sub-dialog 燒雙層字幕，歌詞自動平移片頭秒數並拿掉跟口白重疊的條目。
+
 用法（每支 MV 改上面的 STORYBOARD，或複製本檔到該片資料夾再改）：
   python make_mv.py --shots <分鏡圖資料夾> --music <歌曲.mp3> --out <輸出.mp4>
   例：python make_mv.py --shots "..\..\11_Opencode影片工作流\mv_project\shots" ^
@@ -201,10 +204,57 @@ def run_ff(cmd):
         print(f"  [FFMPEG ERROR] {r.stderr[-600:]}"); sys.exit(1)
     return r
 
-def _escape_sub_path(p: Path) -> str:
-    """FFmpeg subtitles filter 在 Windows 的路徑跳脫（反斜線改斜線、冒號跳脫）。"""
-    s = p.resolve().as_posix()
-    return s.replace(":", r"\:").replace("'", r"\'")
+DUCK_ATTACK = 0.3   # 口白開始前幾秒開始壓音樂
+DUCK_RELEASE = 0.6  # 口白結束後幾秒推回（mv-14 規範）
+
+
+def resolve_cue_path(p, base_dir):
+    """audio_cues.json 裡的相對路徑以 json 所在資料夾為準，不看從哪裡執行（2026-10-17）。"""
+    path = Path(p)
+    return path if path.is_absolute() else (base_dir / path).resolve()
+
+
+def load_cues(cues_path):
+    """讀 audio_cues.json，把路徑解析成絕對、量好每段長度。檔案不存在直接停：
+    以前只印 WARN 繼續跑，口白會安靜從成品消失。"""
+    import json
+    data = json.loads(cues_path.read_text(encoding="utf-8-sig"))
+    base = cues_path.parent
+    missing = []
+    for kind in ("vo", "sfx"):
+        for item in data.get(kind, []):
+            item["path"] = resolve_cue_path(item["file"], base)
+            if not item["path"].exists():
+                missing.append(str(item["path"]))
+                continue
+            have = probe_duration(item["path"])
+            item["dur"] = min(have, float(item["duration"])) if item.get("duration") else have
+    if missing:
+        print("[ERR] audio_cues.json 指到的檔案不存在（相對路徑以 json 所在資料夾為準）：")
+        for m in missing:
+            print(f"      {m}")
+        sys.exit(1)
+    return data
+
+
+def vo_intervals(cues_data):
+    """口白在成片時間軸上的區間 [(start, end, text)]"""
+    return [(float(v.get("start", 0.0)), float(v.get("start", 0.0)) + v["dur"], v.get("text", ""))
+            for v in cues_data.get("vo", [])]
+
+
+def duck_expr(intervals_rel, duck_vol):
+    """音樂音量表達式：每段口白前 DUCK_ATTACK 秒線性壓到 duck_vol，結束後 DUCK_RELEASE 秒線性推回。
+    原本是 if(between()) 瞬間跳 1.0↔0.22，會有音量階梯甚至喀聲。"""
+    parts = []
+    for s, e in intervals_rel:
+        down = f"clip((t-{s - DUCK_ATTACK:.3f})/{DUCK_ATTACK},0,1)"
+        up = f"clip(({e + DUCK_RELEASE:.3f}-t)/{DUCK_RELEASE},0,1)"
+        parts.append(f"{down}*{up}")
+    amount = parts[0]
+    for p in parts[1:]:
+        amount = f"max({amount},{p})"
+    return f"1-{1 - duck_vol:.3f}*{amount}"
 
 
 def normalize_audio(ffmpeg, music, total_dur, tmp_dir, prologue_sec=0.0, epilogue_sec=0.0, cues_data=None):
@@ -219,27 +269,13 @@ def normalize_audio(ffmpeg, music, total_dur, tmp_dir, prologue_sec=0.0, epilogu
     duck_vol = float(cues_data.get("music_duck_volume", 0.22))
 
     song_dur = max(0.5, total_dur - prologue_sec - epilogue_sec)
-    fade_st = max(0.0, song_dur - 2.0)
-    music_filters = [f"afade=t=out:st={fade_st:.2f}:d=2.0"]
+    music_filters = [f"afade=t=out:st={max(0.0, song_dur - 2.0):.2f}:d=2.0"]
 
-    # 若有口白（VO），在口白區間自動壓低音樂（Audio Ducking）
-    duck_exprs = []
-    for item in vo_list:
-        vo_path = Path(item["file"])
-        if not vo_path.is_absolute():
-            vo_path = Path.cwd() / vo_path
-        vo_dur = float(item.get("duration") or (probe_duration(vo_path) if vo_path.exists() else 0.0))
-        if vo_dur <= 0:
-            continue
-        # 換算成相對於歌曲開頭的秒數
-        s_rel = max(0.0, float(item.get("start", 0.0)) - prologue_sec - 0.25)
-        e_rel = max(0.0, float(item.get("start", 0.0)) + vo_dur - prologue_sec + 0.40)
-        if e_rel > 0 and s_rel < song_dur:
-            duck_exprs.append(f"between(t,{s_rel:.2f},{e_rel:.2f})")
-
-    if duck_exprs:
-        cond = "+".join(duck_exprs)
-        music_filters.append(f"volume='if(gt({cond},0),{duck_vol},1.0)':eval=frame")
+    # 口白期間壓低音樂；區間換算成相對歌曲開頭（adelay 之前套用）
+    rel = [(s - prologue_sec, e - prologue_sec) for s, e, _ in vo_intervals(cues_data)]
+    rel = [(s, e) for s, e in rel if e + DUCK_RELEASE > 0 and s - DUCK_ATTACK < song_dur]
+    if rel:
+        music_filters.append(f"volume='{duck_expr(rel, duck_vol)}':eval=frame")
 
     if prologue_sec > 0:
         delay_ms = int(round(prologue_sec * 1000))
@@ -247,37 +283,31 @@ def normalize_audio(ffmpeg, music, total_dur, tmp_dir, prologue_sec=0.0, epilogu
     music_filters.append(f"apad=whole_dur={total_dur:.3f}")
 
     music_bed = tmp_dir / "music_bed.wav"
-    run_ff([str(ffmpeg), "-y", "-i", str(music), "-t", f"{song_dur:.3f}",
+    # 第一個 -t 放在 -i 前面才是裁輸入（放後面會被第二個 -t 蓋掉）
+    run_ff([str(ffmpeg), "-y", "-t", f"{song_dur:.3f}", "-i", str(music),
             "-af", ",".join(music_filters),
             "-t", f"{total_dur:.3f}", "-ar", "48000", "-ac", "2", str(music_bed)])
 
-    # 若有 VO 或 SFX，逐軌對齊時間後與 music_bed 混音
+    # 口白與音效逐軌對齊時間後與 music_bed 混音
     mix_inputs = [music_bed]
     for idx, item in enumerate(vo_list + sfx_list):
-        src = Path(item["file"])
-        if not src.is_absolute():
-            src = Path.cwd() / src
-        if not src.exists():
-            print(f"  [WARN] 找不到音效/口白檔：{src}，跳過")
-            continue
+        is_vo = idx < len(vo_list)
+        du = item["dur"]
         start_ms = int(round(float(item.get("start", 0.0)) * 1000))
-        gain_db = float(item.get("gain_db", 0.0))
-        af = [f"volume={gain_db:.2f}dB"]
-        if item.get("fade_in"):
-            af.append(f"afade=t=in:st=0:d={float(item['fade_in']):.2f}")
-        if item.get("fade_out") and item.get("duration"):
-            fo = float(item["fade_out"])
-            du = float(item["duration"])
+        af = [f"volume={float(item.get('gain_db', 0.0)):.2f}dB"]
+        # 口白頭尾預設 50／80ms 淡入淡出，避免硬切喀聲（記憶：旁白間的異音）
+        fi = float(item.get("fade_in") or (0.05 if is_vo else 0))
+        fo = float(item.get("fade_out") or (0.08 if is_vo else 0))
+        if fi:
+            af.append(f"afade=t=in:st=0:d={fi:.2f}")
+        if fo:
             af.append(f"afade=t=out:st={max(0.0, du - fo):.2f}:d={fo:.2f}")
         if start_ms > 0:
             af.append(f"adelay={start_ms}|{start_ms}")
         af.append(f"apad=whole_dur={total_dur:.3f}")
         track_wav = tmp_dir / f"cue_{idx:02d}.wav"
-        cmd = [str(ffmpeg), "-y", "-i", str(src)]
-        if item.get("duration"):
-            cmd += ["-t", f"{float(item['duration']):.3f}"]
-        cmd += ["-af", ",".join(af), "-t", f"{total_dur:.3f}", "-ar", "48000", "-ac", "2", str(track_wav)]
-        run_ff(cmd)
+        run_ff([str(ffmpeg), "-y", "-t", f"{du:.3f}", "-i", str(item["path"]),
+                "-af", ",".join(af), "-t", f"{total_dur:.3f}", "-ar", "48000", "-ac", "2", str(track_wav)])
         mix_inputs.append(track_wav)
 
     if len(mix_inputs) > 1:
@@ -308,6 +338,56 @@ def normalize_audio(ffmpeg, music, total_dur, tmp_dir, prologue_sec=0.0, epilogu
     print(f"       loudnorm 後 {measured} LUFS，補 {gain:+.2f} dB，限幅 -2.9 dBFS")
     return final
 
+_SRT_TIME = re.compile(r"(\d+):(\d+):(\d+)[,.](\d+)\s*-->\s*(\d+):(\d+):(\d+)[,.](\d+)")
+
+
+def _read_text_any(path):
+    """SRT 可能是記事本存的 UTF-16（開頭 FF FE），也可能有 BOM"""
+    raw = Path(path).read_bytes()
+    if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        return raw.decode("utf-16")
+    return raw.decode("utf-8-sig")
+
+
+def read_srt(path):
+    """回傳 [(start, end, text)]"""
+    out = []
+    for block in re.split(r"\r?\n\s*\r?\n", _read_text_any(path).strip()):
+        lines = block.strip().splitlines()
+        for i, line in enumerate(lines):
+            m = _SRT_TIME.search(line)
+            if m:
+                g = [int(x) for x in m.groups()]
+                s = g[0] * 3600 + g[1] * 60 + g[2] + g[3] / 1000
+                e = g[4] * 3600 + g[5] * 60 + g[6] + g[7] / 1000
+                out.append((s, e, "\n".join(lines[i + 1:])))
+                break
+    return out
+
+
+def write_srt(entries, path):
+    def ts(t):
+        ms = int(round(max(0.0, t) * 1000))
+        return f"{ms // 3600000:02d}:{ms // 60000 % 60:02d}:{ms // 1000 % 60:02d},{ms % 1000:03d}"
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        for n, (s, e, text) in enumerate(entries, 1):
+            f.write(f"{n}\n{ts(s)} --> {ts(e)}\n{text}\n\n")
+
+
+def prepare_lyrics_srt(src, dst, offset, vo_spans):
+    """歌詞 SRT 是以歌曲開頭為 0（audio-to-srt 產的），整份平移 offset（＝片頭戲秒數）；
+    跟口白重疊的歌詞條目拿掉，畫面上同一時間只留一種字幕（mv-14 規範）。"""
+    kept, dropped = [], 0
+    for s, e, text in read_srt(src):
+        s, e = s + offset, e + offset
+        if any(s < ve and e > vs for vs, ve in vo_spans):
+            dropped += 1
+            continue
+        kept.append((s, e, text))
+    write_srt(kept, dst)
+    return len(kept), dropped
+
+
 def main():
     global STORYBOARD, WIDTH, HEIGHT, ALLOW_LOWRES, ALLOW_FPS
     # 2026-10-10：Windows 主控台／被別的程式（Codex 等）擷取輸出時預設 cp950，--help 的中文會亂碼
@@ -323,8 +403,9 @@ def main():
     p.add_argument("--prologue", type=float, default=None, help="微電影：片頭前導戲秒數（音樂延遲幾秒才進場）")
     p.add_argument("--epilogue", type=float, default=None, help="微電影：片尾餘韻秒數（音樂結束後留幾秒環境音或畫面）")
     p.add_argument("--audio-cues", help="微電影：口白與環境音設定檔 audio_cues.json（含 VO 自動閃避音樂與 SFX 混音）")
-    p.add_argument("--sub-lyrics", help="歌詞字幕 SRT 檔路徑")
-    p.add_argument("--sub-dialog", help="微電影：對白／口白字幕 SRT 檔路徑")
+    p.add_argument("--sub-lyrics", help="歌詞字幕 SRT（以歌曲開頭為 0；有片頭戲會自動平移，與口白重疊的條目自動拿掉）")
+    p.add_argument("--lyrics-offset", type=float, default=None, help="歌詞 SRT 平移秒數（預設＝片頭戲秒數；SRT 已經對好成片時間軸就給 0）")
+    p.add_argument("--sub-dialog", help="微電影：對白／口白字幕 SRT（以成片時間軸為 0，不平移）")
     p.add_argument("--music", required=True)
     p.add_argument("--out",   required=True)
     args = p.parse_args()
@@ -351,11 +432,7 @@ def main():
         shutil.rmtree(tmp, ignore_errors=True)
     tmp.mkdir(exist_ok=True)
 
-    cues_data = {}
-    if args.audio_cues:
-        import json
-        cues_path = Path(args.audio_cues).resolve()
-        cues_data = json.loads(cues_path.read_text(encoding="utf-8-sig"))
+    cues_data = load_cues(Path(args.audio_cues).resolve()) if args.audio_cues else {}
     prologue_sec = args.prologue if args.prologue is not None else float(cues_data.get("prologue_sec", 0.0))
     epilogue_sec = args.epilogue if args.epilogue is not None else float(cues_data.get("epilogue_sec", 0.0))
 
@@ -406,13 +483,17 @@ def main():
     final_wav = normalize_audio(ffmpeg, music, total_dur, tmp, prologue_sec, epilogue_sec, cues_data)
 
     # Step 4: 組合最終 MP4（可選燒錄歌詞與對白雙層字幕）
+    # 字幕先複製到 tmp、ffmpeg 在 tmp 底下跑，濾鏡裡只寫檔名——避開 Windows 磁碟代號冒號的跳脫問題
     vf_subs = []
     if args.sub_lyrics:
-        sub_l = _escape_sub_path(Path(args.sub_lyrics))
-        vf_subs.append(f"subtitles='{sub_l}':force_style='FontName=Microsoft JhengHei,FontSize=20,PrimaryColour=&H00E0FFFF,OutlineColour=&H00000000,Outline=2,MarginV=55'")
+        offset = prologue_sec if args.lyrics_offset is None else args.lyrics_offset
+        spans = [(s, e) for s, e, _ in vo_intervals(cues_data)]
+        n_keep, n_drop = prepare_lyrics_srt(Path(args.sub_lyrics), tmp / "lyrics.srt", offset, spans)
+        print(f"       歌詞字幕：平移 {offset:+.2f}s，{n_keep} 條；與口白重疊拿掉 {n_drop} 條")
+        vf_subs.append("subtitles=lyrics.srt:force_style='FontName=Microsoft JhengHei,FontSize=20,PrimaryColour=&H00E0FFFF,OutlineColour=&H00000000,Outline=2,MarginV=55'")
     if args.sub_dialog:
-        sub_d = _escape_sub_path(Path(args.sub_dialog))
-        vf_subs.append(f"subtitles='{sub_d}':force_style='FontName=Microsoft JhengHei,FontSize=22,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,MarginV=25'")
+        write_srt(read_srt(Path(args.sub_dialog)), tmp / "dialog.srt")
+        vf_subs.append("subtitles=dialog.srt:force_style='FontName=Microsoft JhengHei,FontSize=22,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,MarginV=25'")
 
     cmd = [
         str(ffmpeg), "-y",
@@ -428,7 +509,7 @@ def main():
         "-t", f"{total_dur:.3f}",
         str(out_path),
     ]
-    r = subprocess.run(cmd, capture_output=True, text=True,
+    r = subprocess.run(cmd, capture_output=True, text=True, cwd=str(tmp),
                        encoding="utf-8", errors="ignore")
     if r.returncode != 0:
         print(f"  [FFMPEG ERROR] {r.stderr[-600:]}"); sys.exit(1)

@@ -22,7 +22,7 @@ author: 羅東國小資訊組長
 |---|---|---|
 | **Track 1：口白軌（Dialogue / VO）** | 主角獨白、間奏對話 | 最清晰優先。生成後去頭尾靜音，峰值控制在 -3 dBFS 左右。 |
 | **Track 2：音樂軌（SUNO Music）** | 歌曲本體 | 正常段落滿格；**當 Track 1 有口白時，音樂自動壓低至 20%–30%（約 -10 ~ -14 dB，即 Audio Ducking）**，口白結束後 0.6 秒平順推回。若有片頭前導戲（Prologue），音樂延遲至 `prologue` 秒數後才進場。 |
-| **Track 3：環境音軌（SFX / Ambience）** | 鐘聲、雨聲、翻書、腳步、海浪 | 只在轉場、片頭前導、間奏、片尾餘韻點綴（約 -18 ~ -24 dB），不蓋過人聲與副歌。優先使用專案 `assets/sfx/` 內的 CC0 音效庫。 |
+| **Track 3：環境音軌（SFX / Ambience）** | 鐘聲、雨聲、翻書、腳步、海浪 | 只在轉場、片頭前導、間奏、片尾餘韻點綴（約 -18 ~ -24 dB），不蓋過人聲與副歌。CC0 音效自備（例如 Freesound／Pixabay 標 CC0 的檔），可放專案 `assets/sfx/`（目前還沒有這個資料夾，第一次用時建立並在旁邊記下每個檔的來源網址）。 |
 
 ---
 
@@ -32,12 +32,12 @@ author: 羅東國小資訊組長
 
 1. **台詞長度檢查**：對照分鏡表的口白區間，每秒不超過 **3.8 個中文字**（留呼吸感）。
 2. **TTS 生成與挑選**：
-   - 可使用本機或雲端 TTS（如 Edge-TTS 台灣語音 `zh-TW-HsiaoChenNeural` / `zh-TW-YunJheNeural`、BreezyVoice 或 ElevenLabs）。
+   - 可使用本機或雲端 TTS（如 Edge-TTS 台灣語音 `zh-TW-HsiaoChenNeural`、BreezyVoice 或 ElevenLabs）。⚠️ `zh-TW-YunJheNeural` 自 2026-10-14 起回 NoAudioReceived，換聲線前先出試聽檔讓使用者選。
    - **山獅霸防呆法**：重要獨白一次生成 3–5 個候選檔，跑一次 Whisper ASR 檢查有沒有念錯破音字，挑字音全對、停頓最自然的一版，存為 `outputs/<MV名>/audio/vo_cutNN.wav`。
 
 ### Step 2：環境音效（SFX）配置
 
-對照分鏡表的 SFX 欄，從 CC0 音效庫挑選對應音檔，整理成音軌清單 `outputs/<MV名>/audio/audio_cues.json`（可直接餵給 `make_mv.py --audio-cues`）：
+對照分鏡表的 SFX 欄，從 CC0 音效庫挑選對應音檔，整理成音軌清單 `outputs/<MV名>/audio_cues.json`（可直接餵給 `make_mv.py --audio-cues`）。**json 裡的相對路徑以 json 所在資料夾為準**，不管從哪裡執行；檔案不存在 `make_mv.py` 會直接停下來。`start` 一律是成片時間軸（含片頭戲）的秒數：
 
 ```json
 {
@@ -49,8 +49,8 @@ author: 羅東國小資訊組長
     {"file": "audio/vo_interlude.wav", "start": 64.5, "gain_db": 0.0, "text": "這給你，畢業後不准弄丟。"}
   ],
   "sfx": [
-    {"file": "assets/sfx/school_bell.wav", "start": 0.0, "duration": 5.5, "gain_db": -12.0, "fade_out": 1.5},
-    {"file": "assets/sfx/rain_light.wav", "start": 62.0, "duration": 8.0, "gain_db": -16.0, "fade_in": 1.0, "fade_out": 1.5}
+    {"file": "../../assets/sfx/school_bell.wav", "start": 0.0, "duration": 5.5, "gain_db": -18.0, "fade_out": 1.5},
+    {"file": "../../assets/sfx/rain_light.wav", "start": 62.0, "duration": 8.0, "gain_db": -20.0, "fade_in": 1.0, "fade_out": 1.5}
   ]
 }
 ```
@@ -59,9 +59,17 @@ author: 羅東國小資訊組長
 
 `make_mv.py --audio-cues` 內部會自動執行以下三步驟混音（也可手動用 FFmpeg 執行）：
 
+```bash
+# 在 01_MV製作 底下
+python scripts/make_mv.py --storyboard outputs/<MV名>/storyboard_v1.md --videos outputs/<MV名>/videos-raw   --music outputs/<MV名>/music/<歌>.mp3 --audio-cues outputs/<MV名>/audio_cues.json   --sub-lyrics outputs/<MV名>/lyrics.srt --sub-dialog outputs/<MV名>/dialog.srt --out outputs/<MV名>/<MV名>_完整MV.mp4
+python scripts/review_mv.py outputs/<MV名>/<MV名>_完整MV.mp4 --storyboard outputs/<MV名>/storyboard_v1.md   --music outputs/<MV名>/music/<歌>.mp3 --audio-cues outputs/<MV名>/audio_cues.json
+```
+
+
 1. **延遲音樂＋混入 SFX＋口白期間自動壓低音樂（Ducking）**：
    - 若有 `prologue_sec`（例如片頭演 6 秒才進歌），音樂用 `adelay=6000|6000` 往後推。
-   - 口白區間 `[t_start - 0.3, t_end + 0.5]` 用 `volume='if(between(t,s,e), 0.22, 1.0)':eval=frame`（或 `sidechaincompress`）把音樂壓低，讓口白清清楚楚浮出來。
+   - 每段口白開始前 0.3 秒把音樂線性壓到 `music_duck_volume`（預設 0.22，約 -13 dB），結束後 0.6 秒線性推回——是斜坡不是瞬間跳，硬切會有音量階梯和喀聲。
+   - 口白頭尾自動加 50／80 ms 淡入淡出；SFX 的 `fade_out` 沒給 `duration` 時以實際檔長計算。
 2. **兩段式響度標準化（-15.5 LUFS）**：
    - 混完總軌後，跑 `loudnorm=I=-15.5:TP=-1.5:LRA=11` → `ebur128` 量測實際值 → 補差額 → `alimiter=limit=0.72:level=false`（⚠️ 必加 `level=false`，否則靜音段與輕聲獨白會被硬拉爆音）。
 
@@ -72,7 +80,7 @@ author: 羅東國小資訊組長
 | 字幕類型 | 位置與樣式 | 時間軸規則 |
 |---|---|---|
 | **對白／口白字幕（Dialogue SRT）** | 畫面底部置中（MarginV 40）、白字黑邊、標準電影對白字級 | 嚴格對齊 `vo_cutNN.wav` 的起迄秒數 |
-| **歌詞字幕（Lyrics SRT）** | 畫面底部偏上或左／右下角（或用暖黃／青色字區隔） | 若有 `prologue_sec`，整份歌詞 SRT 時間戳自動加上 `+prologue_sec` 平移；**口白出現期間，若有背景哼唱，不顯示歌詞字幕**，避免兩行字幕上下打架 |
+| **歌詞字幕（Lyrics SRT）** | 畫面底部偏上或左／右下角（或用暖黃／青色字區隔） | 歌詞 SRT 以歌曲開頭為 0，`make_mv.py --sub-lyrics` 自動平移 `+prologue_sec`（SRT 已對好成片時間軸就加 `--lyrics-offset 0`）；**跟口白時間重疊的歌詞條目自動拿掉**，畫面同一時間只留一種字幕 |
 
 ---
 
@@ -82,4 +90,4 @@ author: 羅東國小資訊組長
 - [ ] **音樂進場點**：片頭前導戲（Prologue）接進歌曲第一個音時，情緒與畫面切點剛好對上。
 - [ ] **無突兀截斷**：SFX 環境音進出都有 `afade`（0.5–1.5 秒淡入淡出），沒有像切菜一樣硬斷。
 - [ ] **字幕不打架**：同一秒畫面上最多只有一種字幕，且完全遵守《影片製作 6 項基本原則》第 1 條（字幕帶淨空）。
-- [ ] **整體響度**：成片 `ebur128` 落在 `-15.5 ± 0.5 LUFS`，True Peak `≤ -2.0 dBFS`。
+- [ ] **整體響度**：成片 `ebur128` 落在 `-15.5 ± 0.5 LUFS`，峰值 `≤ -1 dBFS`（`review_mv.py --audio-cues` 的判準；`make_mv.py` 限幅在約 -2.9 dBFS）。

@@ -71,7 +71,7 @@ ffmpeg -i "歌曲.mp3" -af "asetnsamples=44100,astats=metadata=1:reset=1,ametada
 - [ ] 每個切點都能對應到歌詞句首、音樂事件或微電影戲劇轉折點
 - [ ] 要生影片的 cut 都 ≤10 秒
 - [ ] 已標出「最難一鏡」
-- [ ] 順手產出校對版 SRT（用 audio-to-srt 完整流程），字幕跟分鏡同源（微電影若有 `prologue`，歌詞 SRT 記得平移 `+prologue` 秒，並與對白 SRT 分開）
+- [ ] 順手產出校對版 SRT（用 audio-to-srt 完整流程），字幕跟分鏡同源（微電影：歌詞 SRT 維持以歌曲開頭為 0，**不要手動平移**——`make_mv.py --sub-lyrics` 會自動加上 `+prologue`；對白 SRT 以成片時間軸為 0，另用 `--sub-dialog` 給）
 
 ---
 
