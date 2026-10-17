@@ -54,10 +54,11 @@ ffmpeg -i "歌曲.mp3" -af "asetnsamples=44100,astats=metadata=1:reset=1,ametada
    - 白閃壓在「進副歌」與「空拍後第二波」兩個音樂重點上
    - 動畫欄用 zoom_in / zoom_out / pan_left / pan_right（對齊 make_mv.py 詞彙）
    - 轉場欄用 fadein / fade / whiteflash / fadeout
-   - 秒數合計必須等於歌曲總長
+   - 秒數合計必須等於歌曲總長（若為**微電影 MV** 含片頭前導戲 `prologue` 或片尾餘韻 `epilogue`，則 `分鏡秒數加總 = prologue + 歌曲總長 + epilogue`）
    - **單鏡秒數上限**：要丟給影片模型的 cut，單鏡 ≤10 秒（工具上限另計，最長不超過 12 秒）；長句拆成兩鏡，切在句中換氣處（2026-10-09 引自山獅霸 AI 短片工作流實測經驗，見 `docs/參考比對_山獅霸工作流.md`（01_MV製作 專案內））
    - 用靜圖＋zoom/pan 的 cut 不受此限
-4. **視覺設計原則**：色調軸線 + 能量對應動作量（副歌放人物動態、主歌收尾放靜物空景）
+   - **微電影擴充（搭配 MV_13 / MV_14）**：若為微電影 MV，分鏡表可於歌曲 `0:00` 前加入 `Prologue` 鏡頭（歌詞對應欄寫 `[Prologue 口白/SFX]`），於間奏或歌尾加入 `Interlude` / `Epilogue` 鏡頭，並在分鏡表下方附上「口白與環境音效時間表（供 `mv-14` 與 `make_mv.py --audio-cues` 使用）」
+4. **視覺設計原則**：色調軸線 + 能量對應動作量（副歌放人物動態、主歌收尾放靜物空景；微電影額外標註正反打視線方向與關鍵信物 `[PROP_REF]` 出現鏡號）
 
 ### Step 3.5：標出「最難一鏡」
 
@@ -66,11 +67,11 @@ ffmpeg -i "歌曲.mp3" -af "asetnsamples=44100,astats=metadata=1:reset=1,ametada
 
 ### Step 4：交付檢查
 
-- [ ] 分鏡秒數加總 = 歌曲總長（ffprobe 驗證）
-- [ ] 每個切點都能對應到歌詞句首或音樂事件
+- [ ] 分鏡秒數加總 = 歌曲總長（或微電影 `prologue + 歌曲總長 + epilogue`，ffprobe 驗證）
+- [ ] 每個切點都能對應到歌詞句首、音樂事件或微電影戲劇轉折點
 - [ ] 要生影片的 cut 都 ≤10 秒
 - [ ] 已標出「最難一鏡」
-- [ ] 順手產出校對版 SRT（用 audio-to-srt 完整流程），字幕跟分鏡同源
+- [ ] 順手產出校對版 SRT（用 audio-to-srt 完整流程），字幕跟分鏡同源（微電影若有 `prologue`，歌詞 SRT 記得平移 `+prologue` 秒，並與對白 SRT 分開）
 
 ---
 

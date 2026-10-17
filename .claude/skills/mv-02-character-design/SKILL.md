@@ -207,7 +207,7 @@ A: 是的。不同工具的效果不同。我提供的提示詞會盡量通用�
 
 ---
 
-## 🔗 角色一致性錨點
+## 🔗 角色與微電影連戲錨點（Character / Location / Prop）
 
 每次完成角色設計後，**必須**輸出以下格式的「角色一致性參考詞」，供 MV_03、MV_04、MV_06、MV_08、MV_09 直接貼入使用：
 
@@ -222,7 +222,25 @@ A: 是的。不同工具的效果不同。我提供的提示詞會盡量通用�
 [CHARACTER_REF] East Asian woman, shoulder-length wavy chestnut hair, wearing cream linen shirt and sage green knit vest, gentle nostalgic atmosphere, consistent character appearance throughout all shots
 ```
 
-> 在後續所有生成步驟中，將 `[CHARACTER_REF]` 的內容貼入提示詞開頭，確保每張圖片和每支影片的角色外觀完全一致。
+### 🎬 微電影 MV 附加連戲錨點（搭配 MV_13 劇本使用）
+
+若製作的是**微電影 MV**（有跨鏡頭連戲主場景與關鍵信物），請一併輸出以下兩個鎖定詞，後續同一場戲或出現信物的鏡頭都**逐字照抄**：
+
+```
+【主場景一致性參考詞】
+[LOCATION_REF] [空間類型與時代感], [固定建材與陳設位置], [主光源方向與色溫], consistent environment layout throughout the scene
+
+【關鍵信物參考詞】
+[PROP_REF] [物品材質、顏色、尺寸與特殊細節], consistent prop design
+```
+
+範例：
+```
+[LOCATION_REF] Taiwanese high school classroom, vintage wooden desks by the left window, green chalkboard at the front, warm golden sunset streaming from the left window, consistent environment layout throughout the scene
+[PROP_REF] a small hand-folded faded blue paper star with tiny pencil handwriting on one corner, consistent prop design
+```
+
+> 在後續所有生成步驟中，將 `[CHARACTER_REF]`（以及該場戲對應的 `[LOCATION_REF]`、`[PROP_REF]`）貼入提示詞開頭，確保每張圖片和每支影片的角色、空間與道具完全連戲。
 
 ---
 

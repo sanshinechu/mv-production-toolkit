@@ -87,6 +87,26 @@ Exactly 3 people. LOCKED-OFF STATIC CAMERA on a tripod. NO black letterbox bars.
 
 ---
 
+## 🎭 微電影專屬：對手戲、視線配對與情緒轉折（搭配 MV_13）
+
+當製作**微電影 MV** 時，鏡頭不再只是單人擺姿勢，而是要「剪接起來像在互動、演戲」。撰寫提示詞時請加入以下三項調度：
+
+1. **正反打視線配對（Eyeline Match / 180 度軸線定律）**
+   - 兩人在不同單人鏡頭對看或對話時，視線方向必須一左一右配對，剪接起來才會像看著對方：
+   - **角色 A 鏡**：站畫面偏左，視線看向畫面右方（`positioned slightly left of frame, looking off-screen right with gentle eyes`）
+   - **角色 B 鏡（反打）**：站畫面偏右，視線看向畫面左方（`positioned slightly right of frame, looking off-screen left, reacting with a shy smile`）
+2. **過肩鏡頭（Over-the-Shoulder, OTS）**
+   - 要呈現雙人距離感但又怕模型把兩張臉都畫崩時，用「前景背影模糊＋主體正面特寫」：
+   - 寫法：`Over-the-shoulder shot, blurred back of [角色A簡述] in the left foreground, focusing sharply on [CHARACTER_REF] facing the camera...`
+3. **兩段式微表情轉折（Micro-expression Arc）**
+   - 微電影的演技來自「狀態改變」，在 5–8 秒內安排一個清楚的情緒轉折（不要超過兩個）：
+   - 例：「0–3 秒低頭盯著手中的 `[PROP_REF]` 眼神猶豫 → 3–6 秒深吸一口氣抬起頭，眼神轉為堅定」。
+   - **有口白（Dialogue / VO）的鏡頭**：
+     - **內心獨白（VO，聲音在腦海）**：畫面角色仍保持 `lips closed, not talking or singing`，靠眼神演戲。
+     - **現場開口台詞（對嘴鏡）**：明確寫出 `speaking gently with natural lip movement from 1s to 4s`，並控制在單人中近景。
+
+---
+
 ## 🎨 影片風格選項
 
 生成影片前，我會先詢問你想要的風格。以下是五種主要風格供選擇：

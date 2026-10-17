@@ -201,17 +201,101 @@ def run_ff(cmd):
         print(f"  [FFMPEG ERROR] {r.stderr[-600:]}"); sys.exit(1)
     return r
 
-def normalize_audio(ffmpeg, music, total_dur, tmp_dir):
-    """音樂裁到分鏡總長、結尾 2 秒淡出，再兩段式拉到 TARGET_LUFS。回傳 final.wav。
+def _escape_sub_path(p: Path) -> str:
+    """FFmpeg subtitles filter 在 Windows 的路徑跳脫（反斜線改斜線、冒號跳脫）。"""
+    s = p.resolve().as_posix()
+    return s.replace(":", r"\:").replace("'", r"\'")
+
+
+def normalize_audio(ffmpeg, music, total_dur, tmp_dir, prologue_sec=0.0, epilogue_sec=0.0, cues_data=None):
+    """音樂裁到歌曲區間、結尾 2 秒淡出，支援微電影 Prologue 延遲、口白 Ducking 與 SFX 混音，再兩段式拉到 TARGET_LUFS。
 
     兩段式：loudnorm 先粗調 → ebur128 量實際值 → 補差額 → 限幅。
     alimiter 一定要 level=false：預設 level=true 會把輸出自動拉到 0 dBFS（爆音邊緣），而且不會報錯。
     """
+    cues_data = cues_data or {}
+    vo_list = cues_data.get("vo", [])
+    sfx_list = cues_data.get("sfx", [])
+    duck_vol = float(cues_data.get("music_duck_volume", 0.22))
+
+    song_dur = max(0.5, total_dur - prologue_sec - epilogue_sec)
+    fade_st = max(0.0, song_dur - 2.0)
+    music_filters = [f"afade=t=out:st={fade_st:.2f}:d=2.0"]
+
+    # 若有口白（VO），在口白區間自動壓低音樂（Audio Ducking）
+    duck_exprs = []
+    for item in vo_list:
+        vo_path = Path(item["file"])
+        if not vo_path.is_absolute():
+            vo_path = Path.cwd() / vo_path
+        vo_dur = float(item.get("duration") or (probe_duration(vo_path) if vo_path.exists() else 0.0))
+        if vo_dur <= 0:
+            continue
+        # 換算成相對於歌曲開頭的秒數
+        s_rel = max(0.0, float(item.get("start", 0.0)) - prologue_sec - 0.25)
+        e_rel = max(0.0, float(item.get("start", 0.0)) + vo_dur - prologue_sec + 0.40)
+        if e_rel > 0 and s_rel < song_dur:
+            duck_exprs.append(f"between(t,{s_rel:.2f},{e_rel:.2f})")
+
+    if duck_exprs:
+        cond = "+".join(duck_exprs)
+        music_filters.append(f"volume='if(gt({cond},0),{duck_vol},1.0)':eval=frame")
+
+    if prologue_sec > 0:
+        delay_ms = int(round(prologue_sec * 1000))
+        music_filters.append(f"adelay={delay_ms}|{delay_ms}")
+    music_filters.append(f"apad=whole_dur={total_dur:.3f}")
+
+    music_bed = tmp_dir / "music_bed.wav"
+    run_ff([str(ffmpeg), "-y", "-i", str(music), "-t", f"{song_dur:.3f}",
+            "-af", ",".join(music_filters),
+            "-t", f"{total_dur:.3f}", "-ar", "48000", "-ac", "2", str(music_bed)])
+
+    # 若有 VO 或 SFX，逐軌對齊時間後與 music_bed 混音
+    mix_inputs = [music_bed]
+    for idx, item in enumerate(vo_list + sfx_list):
+        src = Path(item["file"])
+        if not src.is_absolute():
+            src = Path.cwd() / src
+        if not src.exists():
+            print(f"  [WARN] 找不到音效/口白檔：{src}，跳過")
+            continue
+        start_ms = int(round(float(item.get("start", 0.0)) * 1000))
+        gain_db = float(item.get("gain_db", 0.0))
+        af = [f"volume={gain_db:.2f}dB"]
+        if item.get("fade_in"):
+            af.append(f"afade=t=in:st=0:d={float(item['fade_in']):.2f}")
+        if item.get("fade_out") and item.get("duration"):
+            fo = float(item["fade_out"])
+            du = float(item["duration"])
+            af.append(f"afade=t=out:st={max(0.0, du - fo):.2f}:d={fo:.2f}")
+        if start_ms > 0:
+            af.append(f"adelay={start_ms}|{start_ms}")
+        af.append(f"apad=whole_dur={total_dur:.3f}")
+        track_wav = tmp_dir / f"cue_{idx:02d}.wav"
+        cmd = [str(ffmpeg), "-y", "-i", str(src)]
+        if item.get("duration"):
+            cmd += ["-t", f"{float(item['duration']):.3f}"]
+        cmd += ["-af", ",".join(af), "-t", f"{total_dur:.3f}", "-ar", "48000", "-ac", "2", str(track_wav)]
+        run_ff(cmd)
+        mix_inputs.append(track_wav)
+
+    if len(mix_inputs) > 1:
+        pre_ln = tmp_dir / "pre_ln.wav"
+        in_args = []
+        for p_in in mix_inputs:
+            in_args += ["-i", str(p_in)]
+        run_ff([str(ffmpeg), "-y", *in_args,
+                "-filter_complex", f"amix=inputs={len(mix_inputs)}:duration=first:dropout_transition=0:normalize=0",
+                "-ar", "48000", str(pre_ln)])
+        print(f"       已混入微電影音軌：音樂 + {len(vo_list)} 段口白 + {len(sfx_list)} 段環境音")
+    else:
+        pre_ln = music_bed
+
     ln = tmp_dir / "ln.wav"
     final = tmp_dir / "final.wav"
-    run_ff([str(ffmpeg), "-y", "-i", str(music), "-t", f"{total_dur:.3f}",
-            "-af", f"afade=t=out:st={total_dur - 2.0:.2f}:d=2.0,"
-                   f"loudnorm=I={TARGET_LUFS}:TP=-1.5:LRA=11",
+    run_ff([str(ffmpeg), "-y", "-i", str(pre_ln), "-t", f"{total_dur:.3f}",
+            "-af", f"loudnorm=I={TARGET_LUFS}:TP=-1.5:LRA=11",
             "-ar", "48000", str(ln)])
     r = run_ff([str(ffmpeg), "-i", str(ln), "-af", "ebur128", "-f", "null", "-"])
     summ = r.stderr[r.stderr.rfind("Summary:"):]
@@ -236,6 +320,11 @@ def main():
     p.add_argument("--size", default=f"{WIDTH}x{HEIGHT}", help="輸出尺寸，成品 1080p 用 1920x1080（預設 1280x720）")
     p.add_argument("--allow-lowres", action="store_true", help="允許低於輸出解析度的影片（會被硬放大，畫質差）")
     p.add_argument("--allow-fps", action="store_true", help=f"允許不是 {FPS} fps 的影片")
+    p.add_argument("--prologue", type=float, default=None, help="微電影：片頭前導戲秒數（音樂延遲幾秒才進場）")
+    p.add_argument("--epilogue", type=float, default=None, help="微電影：片尾餘韻秒數（音樂結束後留幾秒環境音或畫面）")
+    p.add_argument("--audio-cues", help="微電影：口白與環境音設定檔 audio_cues.json（含 VO 自動閃避音樂與 SFX 混音）")
+    p.add_argument("--sub-lyrics", help="歌詞字幕 SRT 檔路徑")
+    p.add_argument("--sub-dialog", help="微電影：對白／口白字幕 SRT 檔路徑")
     p.add_argument("--music", required=True)
     p.add_argument("--out",   required=True)
     args = p.parse_args()
@@ -262,19 +351,28 @@ def main():
         shutil.rmtree(tmp, ignore_errors=True)
     tmp.mkdir(exist_ok=True)
 
+    cues_data = {}
+    if args.audio_cues:
+        import json
+        cues_path = Path(args.audio_cues).resolve()
+        cues_data = json.loads(cues_path.read_text(encoding="utf-8-sig"))
+    prologue_sec = args.prologue if args.prologue is not None else float(cues_data.get("prologue_sec", 0.0))
+    epilogue_sec = args.epilogue if args.epilogue is not None else float(cues_data.get("epilogue_sec", 0.0))
+
     total_dur = sum(s[4] for s in STORYBOARD)
+    song_window = total_dur - prologue_sec - epilogue_sec
     music_dur = probe_duration(music)
-    if music_dur + 0.05 < total_dur:
-        print(f"[ERR] 音樂 {music_dur:.2f}s 比分鏡總長 {total_dur:.2f}s 短，片尾會沒聲音。"
-              "先改 STORYBOARD 秒數讓加總等於歌長（MV_11 規定）")
+    if music_dur + 0.05 < song_window:
+        print(f"[ERR] 音樂 {music_dur:.2f}s 比所需歌曲區間 {song_window:.2f}s（總長 {total_dur:.2f}s - 片頭 {prologue_sec:.1f}s - 片尾 {epilogue_sec:.1f}s）短，片尾會沒聲音。"
+              "先改 STORYBOARD 秒數或 --prologue/--epilogue（MV_11 規定）")
         sys.exit(1)
-    if music_dur - total_dur > 0.25:
-        print(f"  [注意] 音樂 {music_dur:.2f}s 比分鏡總長 {total_dur:.2f}s 長，"
-              f"會在 {total_dur:.2f}s 淡出結束，歌的最後 {music_dur - total_dur:.1f}s 不會出現")
+    if music_dur - song_window > 0.25:
+        print(f"  [注意] 音樂 {music_dur:.2f}s 比歌曲區間 {song_window:.2f}s 長，"
+              f"會在歌曲區間結束處淡出，歌的最後 {music_dur - song_window:.1f}s 不會出現")
     print(f"\n== 開始組裝 MV ==")
     print(f"  素材：{shots}")
     print(f"  音樂：{music.name}")
-    print(f"  cut 數：{len(STORYBOARD)}，總長：{total_dur}s")
+    print(f"  cut 數：{len(STORYBOARD)}，總長：{total_dur}s（片頭戲 {prologue_sec:.1f}s / 歌曲 {song_window:.1f}s / 片尾戲 {epilogue_sec:.1f}s）")
     print(f"  解析度：{WIDTH}x{HEIGHT}  FPS：{FPS}")
 
     # Step 1: 12 個 cut
@@ -303,15 +401,27 @@ def main():
         for c in clip_paths:
             f.write(f"file '{c.as_posix()}'\n")
 
-    # Step 3: 音樂裁到分鏡長度、結尾淡出、兩段式響度
-    print(f"\n  Step 3: 音樂響度標準化（目標 {TARGET_LUFS} LUFS）...")
-    final_wav = normalize_audio(ffmpeg, music, total_dur, tmp)
+    # Step 3: 音樂裁到分鏡長度、結尾淡出、微電影混音與兩段式響度
+    print(f"\n  Step 3: 音軌混音與響度標準化（目標 {TARGET_LUFS} LUFS）...")
+    final_wav = normalize_audio(ffmpeg, music, total_dur, tmp, prologue_sec, epilogue_sec, cues_data)
 
-    # Step 4: 組合最終 MP4
+    # Step 4: 組合最終 MP4（可選燒錄歌詞與對白雙層字幕）
+    vf_subs = []
+    if args.sub_lyrics:
+        sub_l = _escape_sub_path(Path(args.sub_lyrics))
+        vf_subs.append(f"subtitles='{sub_l}':force_style='FontName=Microsoft JhengHei,FontSize=20,PrimaryColour=&H00E0FFFF,OutlineColour=&H00000000,Outline=2,MarginV=55'")
+    if args.sub_dialog:
+        sub_d = _escape_sub_path(Path(args.sub_dialog))
+        vf_subs.append(f"subtitles='{sub_d}':force_style='FontName=Microsoft JhengHei,FontSize=22,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,MarginV=25'")
+
     cmd = [
         str(ffmpeg), "-y",
         "-f", "concat", "-safe", "0", "-i", str(list_file),
         "-i", str(final_wav),
+    ]
+    if vf_subs:
+        cmd += ["-vf", ",".join(vf_subs)]
+    cmd += [
         "-c:v", "libx264", "-preset", "medium", "-crf", "20",
         "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "192k",
