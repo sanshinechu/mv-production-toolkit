@@ -57,7 +57,7 @@
 
 ## MV skill 的正本與同步
 
-- 12 支 MV skill（`MV_WORKFLOW_GUIDE`、`mv-01`～`mv-12`）的**正本在 dotfiles 的 `.skills/`**，不在本專案。
+- MV skill（`MV_WORKFLOW_GUIDE`、`mv-01`～`mv-14`，2026-10-17 加入微電影用的 mv-13 劇本、mv-14 混音）的**正本在 dotfiles 的 `.skills/`**，不在本專案。
 - 改完正本後跑 `bash scripts/sync_mv_skills.sh --apply`，把新版複製到本專案的 `.claude/skills/`（Claude）與 `.agents/skills/`（Codex，自動把工具名 Claude 換成 Codex）。
 - **不要直接改本專案這兩份副本**，下次同步會被覆蓋。本專案獨有的 skill（`mv-production-packaging`、`mv-subtitle-scene-sync`、`mv-03-scene-prompt-generation`、`media-generation`、`youtube-publisher`）不受同步影響，照舊直接改。
 - 組裝與檢查腳本：`scripts/make_mv.py`、`scripts/review_mv.py`。
