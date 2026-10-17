@@ -269,7 +269,7 @@ soft even studio lighting, no props, no text
 
 角色設計完成後，建議：
 
-1. **使用 ai-media-generator** → 根據提示詞生成角色圖片
+1. **使用 media-generation** → 根據提示詞生成角色圖片
 2. **MV_03 影像生成** → 為場景創作視覺描述（貼入角色一致性參考詞）
 3. **MV_04 九宮格分鏡設計** → 基於角色設計生成分鏡圖（貼入角色一致性參考詞）
 

@@ -1,6 +1,6 @@
 # 01_MV製作（mv-production-toolkit）
 
-AI MV 製作工具箱：12 支 MV skill 的專案副本、三方共審接點、Colab H3／Google Flow 影片分流、組裝與檢查腳本。
+AI MV 製作工具箱：14 支 MV skill 的專案副本、三方共審接點、Colab H3／Google Flow 影片分流、組裝與檢查腳本。
 
 ## 現行流程（2026-10）
 

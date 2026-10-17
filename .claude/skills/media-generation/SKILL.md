@@ -6,6 +6,10 @@ version: 2.0.0
 author: 阿亮老師・3A科技研究社
 ---
 
+> 🛑 **生成授權（硬性）**：先交出提示詞、模型與成本估計，並詢問使用者是否要「直接生圖」或「直接生影片」。只有收到這兩句明確授權之一，才可執行本檔任何會呼叫外部模型、FAL API、curl 或下載成品的命令；否則停在提示詞與方案比較。
+
+> ⚠️ **工具狀態**：本專案副本未附 `scripts/generate_video.py`。下方的 Seedance 腳本範例不可直接執行；要使用該管道時，先確認已安裝、可用且經使用者同意的工具，再提供相符命令。
+
 ## 🎨 功能說明
 
 這是一個全能的 AI 多媒體生成工具，支援：
@@ -120,13 +124,8 @@ curl -s -X POST "https://fal.run/fal-ai/kling-video/v2.1/master/text-to-video" \
 ```
 
 **電影感版（Seedance 2.0）**
-使用 Python 腳本（已包含在 `scripts/generate_video.py`）：
-```bash
-python scripts/generate_video.py \
-  --prompt "你的影片提示詞" \
-  --duration 8 \
-  --model seedance2
-```
+
+本副本沒有可直接呼叫 Seedance 的 Python 腳本。先完成生成授權，再依當下已設定的供應商／工具取得正確命令；不要假設 `scripts/generate_video.py` 存在。
 
 ---
 
@@ -175,12 +174,12 @@ python scripts/generate_video.py \
 
 **使用順序**：
 1. ✅ **MV_01** → 創作歌詞（獲得 SUNO 風格）
-2. 🎵 **ai-media-generator** → 用 SUNO 生成音樂
+2. 🎵 **media-generation** → 用 SUNO 生成音樂
 3. ✅ **MV_02** → 設計角色（獲得提示詞）
-4. 🎨 **ai-media-generator** → 生圖確認角色外觀
+4. 🎨 **media-generation** → 生圖確認角色外觀
 5. ✅ **MV_03~06** → 完成所有視覺和影片提示詞
-6. 🎬 **ai-media-generator** → 批量生成所有圖片和影片
-7. ✅ **yt-auto-publisher** → 上傳到 YouTube
+6. 🎬 **media-generation** → 批量生成所有圖片和影片
+7. ✅ **youtube-publisher** → 上傳到 YouTube
 
 ---
 

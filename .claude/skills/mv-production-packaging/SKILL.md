@@ -1,6 +1,6 @@
 ---
 name: MV 製作完整工作流總控
-description: MV 製作完整工作流總控技能。當使用者要求完成一個 MV 製作（從歌詞創作到 YouTube 發布）、一次跑完整個製作線、或說「使用 mv-production-packaging」時使用。此技能整合 11 個製作步驟，包括歌詞創作、角色設計、場景提示詞、分鏡設計、視頻生成、組裝驗證、YouTube 上傳。適用於 Claude Code 和 Codex 的雙 AI 協作模式。
+description: MV 製作完整工作流總控技能。當使用者要求完成一個 MV 製作（從歌詞創作到 YouTube 發布）、一次跑完整個製作線、或說「使用 mv-production-packaging」時使用。此技能涵蓋現行 14 個模組與組裝驗證；舊段落僅作存檔參考。適用於 Claude Code、Codex 與其他已授權 AI 的協作模式。
 ---
 
 # MV 製作完整工作流 - 生產總控
@@ -8,6 +8,8 @@ description: MV 製作完整工作流總控技能。當使用者要求完成一�
 > 📏 **先讀《影片製作 6 項基本原則》**：`docs/影片製作基本原則.md`（01_MV製作 專案內，唯一正本，這裡不抄內容）。本 skill 負責最終組裝、抽幀與上傳，交件前的抽幀檢查一定要照原則做完，未實際抽幀不得宣稱通過。
 
 > 🛑 **上傳授權（硬性）**：YouTube 上傳（含排程、改公開）前，先把檔案、標題、隱私設定列給使用者，**取得使用者當次明確同意才執行**；之前同意過的不算數。測試上傳一律先設「不公開」。
+
+> ⚠️ **現行工作流優先**：本 skill 除本區塊外的 `HANDOFF.md`、`outputs/final/`、`videos_v2/`、`yt-auto-publisher/` 與逐段 concat 內容皆為舊版存檔，**不得直接照做**。新專案一律以 `python scripts/new_mv.py "<MV名>"` 建立的 `outputs/<MV名>/` 為準，依 `storyboard_vN.md` → `collect_videos.py` → `make_mv.py` → `review_mv.py` → 老師人工抽幀；上傳前仍需另取當次明確同意。
 
 ## 先讀
 

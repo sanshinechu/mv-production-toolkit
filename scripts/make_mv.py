@@ -107,13 +107,17 @@ def build_fade_filter(trans_in, trans_out, dur, fps):
     """回傳 fade 濾鏡字串（加在 zoompan 後面）"""
     parts = []
     in_d, out_d = fade_durations(trans_in, trans_out)
+    # 分鏡可短於預設淡出時間；不夾住會產生負的 fade 起點，FFmpeg 直接失敗。
+    in_d = min(in_d, dur)
+    out_d = min(out_d, dur)
     parts.append(f"fade=t=in:st=0:d={in_d}")
     parts.append(f"fade=t=out:st={dur-out_d}:d={out_d}")
     if trans_in == "whiteflash":
         # 白閃：先淡入到白，再從白淡入到畫面（用 fade 疊代）
-        parts.append(f"fade=t=in:st=0:d=0.3:color=white")
+        parts.append(f"fade=t=in:st=0:d={min(0.3, dur)}:color=white")
     if trans_out == "whiteflash":
-        parts.append(f"fade=t=out:st={dur-0.4}:d=0.4:color=white")
+        flash_d = min(0.4, dur)
+        parts.append(f"fade=t=out:st={dur-flash_d}:d={flash_d}:color=white")
     return ",".join(parts)
 
 def make_clip(ffmpeg, img_path, anim, trans_in, trans_out, dur, out_path, tmp_dir):
@@ -206,6 +210,7 @@ def run_ff(cmd):
 
 DUCK_ATTACK = 0.3   # 口白開始前幾秒開始壓音樂
 DUCK_RELEASE = 0.6  # 口白結束後幾秒推回（mv-14 規範）
+TIMELINE_TOLERANCE = 0.05
 
 
 def resolve_cue_path(p, base_dir):
@@ -241,6 +246,60 @@ def vo_intervals(cues_data):
     """口白在成片時間軸上的區間 [(start, end, text)]"""
     return [(float(v.get("start", 0.0)), float(v.get("start", 0.0)) + v["dur"], v.get("text", ""))
             for v in cues_data.get("vo", [])]
+
+
+def validate_mix_timeline(cues_data, total_dur, prologue_sec, epilogue_sec):
+    """在送進 ffmpeg 前擋掉會被 -t 靜默裁掉的微電影時間軸設定。"""
+    errors = []
+    if prologue_sec < 0:
+        errors.append(f"片頭戲不可為負數：{prologue_sec:.3f}s")
+    if epilogue_sec < 0:
+        errors.append(f"片尾戲不可為負數：{epilogue_sec:.3f}s")
+    song_window = total_dur - prologue_sec - epilogue_sec
+    if song_window < 0.5:
+        errors.append(
+            f"片頭＋片尾後歌曲只剩 {song_window:.3f}s；至少須保留 0.5s"
+        )
+    for kind, label in (("vo", "口白"), ("sfx", "環境音")):
+        for index, item in enumerate(cues_data.get(kind, []), 1):
+            start = float(item.get("start", 0.0))
+            duration = float(item["dur"])
+            end = start + duration
+            if start < 0:
+                errors.append(f"{label} #{index} 起點 {start:.3f}s 小於 0")
+            if end > total_dur:
+                errors.append(
+                    f"{label} #{index} 結束 {end:.3f}s 超出成片總長 {total_dur:.3f}s"
+                )
+    if errors:
+        print("[ERR] 微電影時間軸不合法：")
+        for error in errors:
+            print(f"      {error}")
+        sys.exit(1)
+    return max(0.5, song_window)
+
+
+def validate_dialog_srt(entries, vo_spans):
+    """對白字幕須完全落在口白音檔內，否則歌詞避讓無法保證字幕不打架。"""
+    if not entries:
+        return
+    if not vo_spans:
+        print("[ERR] 指定 --sub-dialog 時，--audio-cues 必須至少提供一段 vo 口白音檔")
+        sys.exit(1)
+    invalid = []
+    for index, (start, end, _text) in enumerate(entries, 1):
+        covered = any(
+            start >= vo_start - TIMELINE_TOLERANCE
+            and end <= vo_end + TIMELINE_TOLERANCE
+            for vo_start, vo_end in vo_spans
+        )
+        if not covered:
+            invalid.append(f"對白字幕 #{index} {start:.3f}s–{end:.3f}s 未完整對齊任何 vo 音檔")
+    if invalid:
+        print("[ERR] 對白字幕時間軸不合法：")
+        for error in invalid:
+            print(f"      {error}")
+        sys.exit(1)
 
 
 def duck_expr(intervals_rel, duck_vol):
@@ -374,13 +433,13 @@ def write_srt(entries, path):
             f.write(f"{n}\n{ts(s)} --> {ts(e)}\n{text}\n\n")
 
 
-def prepare_lyrics_srt(src, dst, offset, vo_spans):
+def prepare_lyrics_srt(src, dst, offset, blocked_spans):
     """歌詞 SRT 是以歌曲開頭為 0（audio-to-srt 產的），整份平移 offset（＝片頭戲秒數）；
     跟口白重疊的歌詞條目拿掉，畫面上同一時間只留一種字幕（mv-14 規範）。"""
     kept, dropped = [], 0
     for s, e, text in read_srt(src):
         s, e = s + offset, e + offset
-        if any(s < ve and e > vs for vs, ve in vo_spans):
+        if any(s < ve and e > vs for vs, ve in blocked_spans):
             dropped += 1
             continue
         kept.append((s, e, text))
@@ -437,7 +496,7 @@ def main():
     epilogue_sec = args.epilogue if args.epilogue is not None else float(cues_data.get("epilogue_sec", 0.0))
 
     total_dur = sum(s[4] for s in STORYBOARD)
-    song_window = total_dur - prologue_sec - epilogue_sec
+    song_window = validate_mix_timeline(cues_data, total_dur, prologue_sec, epilogue_sec)
     music_dur = probe_duration(music)
     if music_dur + 0.05 < song_window:
         print(f"[ERR] 音樂 {music_dur:.2f}s 比所需歌曲區間 {song_window:.2f}s（總長 {total_dur:.2f}s - 片頭 {prologue_sec:.1f}s - 片尾 {epilogue_sec:.1f}s）短，片尾會沒聲音。"
@@ -485,14 +544,20 @@ def main():
     # Step 4: 組合最終 MP4（可選燒錄歌詞與對白雙層字幕）
     # 字幕先複製到 tmp、ffmpeg 在 tmp 底下跑，濾鏡裡只寫檔名——避開 Windows 磁碟代號冒號的跳脫問題
     vf_subs = []
+    dialog_entries = []
+    vo_spans = [(s, e) for s, e, _ in vo_intervals(cues_data)]
+    if args.sub_dialog:
+        dialog_entries = read_srt(Path(args.sub_dialog))
+        validate_dialog_srt(dialog_entries, vo_spans)
     if args.sub_lyrics:
         offset = prologue_sec if args.lyrics_offset is None else args.lyrics_offset
-        spans = [(s, e) for s, e, _ in vo_intervals(cues_data)]
-        n_keep, n_drop = prepare_lyrics_srt(Path(args.sub_lyrics), tmp / "lyrics.srt", offset, spans)
+        # 對白 SRT 允許毫秒四捨五入容差時，仍要把它自身區間列入避讓，不能留下 1 格雙字幕。
+        blocked_spans = vo_spans + [(s, e) for s, e, _ in dialog_entries]
+        n_keep, n_drop = prepare_lyrics_srt(Path(args.sub_lyrics), tmp / "lyrics.srt", offset, blocked_spans)
         print(f"       歌詞字幕：平移 {offset:+.2f}s，{n_keep} 條；與口白重疊拿掉 {n_drop} 條")
         vf_subs.append("subtitles=lyrics.srt:force_style='FontName=Microsoft JhengHei,FontSize=20,PrimaryColour=&H00E0FFFF,OutlineColour=&H00000000,Outline=2,MarginV=55'")
     if args.sub_dialog:
-        write_srt(read_srt(Path(args.sub_dialog)), tmp / "dialog.srt")
+        write_srt(dialog_entries, tmp / "dialog.srt")
         vf_subs.append("subtitles=dialog.srt:force_style='FontName=Microsoft JhengHei,FontSize=22,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,MarginV=25'")
 
     cmd = [

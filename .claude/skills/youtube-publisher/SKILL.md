@@ -28,6 +28,10 @@ uv run --with google-api-python-client --with google-auth-oauthlib \
 
 ---
 
+> 🛑 **上傳授權（硬性）**：任何上傳、排程、改公開、改隱私或加入播放清單前，必須先列出檔案、標題與目標隱私設定，取得使用者「這一次」的明確同意。`--dry-run` 不算授權；未同意時只能準備 metadata 與檢查清單。
+
+> ⚠️ **工具狀態**：此專案副本只含說明文件，未附 `scripts/setup_credentials.py`、`env_check.py`、`upload_video.py`、`batch_upload.py` 或 `manage_channel.py`。下方相對 `scripts/...` 命令是舊範例，**不可直接執行**；使用前必須先確認實際上傳工具與其路徑，且預設隱私應為 `private`。
+
 ## 📤 功能說明
 
 全自動 YouTube 影片發布工具，可以：
@@ -212,7 +216,7 @@ python yt-auto-publisher/scripts/manage_channel.py \
 ```
 MV_01-10 製作完成
     ↓
-ai-media-generator 生成最終影片
+media-generation 生成最終影片
     ↓
 使用本工具上傳 YouTube
     ↓
@@ -339,7 +343,7 @@ python yt-auto-publisher/scripts/upload_video.py \
 ## 📞 與 MV 工作流程的整合
 
 **最後一步**：
-1. ✅ **ai-media-generator** → 生成最終影片
+1. ✅ **media-generation** → 生成最終影片
 2. 📤 **本工具** → 自動上傳到 YouTube
 3. 🔔 → 分享連結到社群媒體
 

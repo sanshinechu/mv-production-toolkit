@@ -8,7 +8,7 @@
 
 > 註：本檔（AGENTS.md）供 Codex／OpenCode／Antigravity 讀取，與 Claude Code 專用的 `CLAUDE.md`、`.claude/skills/` 內容對齊，三者請保持同步。
 >
-> 📌 **MV skill 正本在 dotfiles 的 `.skills/`**（2026-10-09 起）。`.claude/skills/` 與 `.agents/skills/` 裡的 `MV_WORKFLOW_GUIDE`、`mv-01`～`mv-12` 都是 `scripts/sync_mv_skills.sh --apply` 產生的副本，**不要直接改**，改了下次同步會被覆蓋。本專案獨有的 skill（`mv-production-packaging` 等）不在同步範圍。組裝與檢查腳本：`scripts/make_mv.py`、`scripts/review_mv.py`。
+> 📌 **MV skill 正本在 dotfiles 的 `.skills/`**（2026-10-09 起）。`.claude/skills/` 與 `.agents/skills/` 裡的 `MV_WORKFLOW_GUIDE`、`mv-01`～`mv-14` 都是 `scripts/sync_mv_skills.sh --apply` 產生的副本，**不要直接改**，改了下次同步會被覆蓋。本專案獨有的 skill（`mv-production-packaging` 等）不在同步範圍。組裝與檢查腳本：`scripts/make_mv.py`、`scripts/review_mv.py`。
 
 ---
 

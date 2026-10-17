@@ -79,7 +79,7 @@ python scripts/review_mv.py outputs/<MV名>/<MV名>_完整MV.mp4 --storyboard ou
 
 | 字幕類型 | 位置與樣式 | 時間軸規則 |
 |---|---|---|
-| **對白／口白字幕（Dialogue SRT）** | 畫面底部置中（MarginV 40）、白字黑邊、標準電影對白字級 | 嚴格對齊 `vo_cutNN.wav` 的起迄秒數 |
+| **對白／口白字幕（Dialogue SRT）** | 畫面底部置中（MarginV 40）、白字黑邊、標準電影對白字級 | 嚴格對齊 `vo_cutNN.wav` 的起迄秒數；`make_mv.py` 會拒絕未完整落在任一 `vo[]` 區間的條目 |
 | **歌詞字幕（Lyrics SRT）** | 畫面底部偏上或左／右下角（或用暖黃／青色字區隔） | 歌詞 SRT 以歌曲開頭為 0，`make_mv.py --sub-lyrics` 自動平移 `+prologue_sec`（SRT 已對好成片時間軸就加 `--lyrics-offset 0`）；**跟口白時間重疊的歌詞條目自動拿掉**，畫面同一時間只留一種字幕 |
 
 ---
@@ -90,4 +90,5 @@ python scripts/review_mv.py outputs/<MV名>/<MV名>_完整MV.mp4 --storyboard ou
 - [ ] **音樂進場點**：片頭前導戲（Prologue）接進歌曲第一個音時，情緒與畫面切點剛好對上。
 - [ ] **無突兀截斷**：SFX 環境音進出都有 `afade`（0.5–1.5 秒淡入淡出），沒有像切菜一樣硬斷。
 - [ ] **字幕不打架**：同一秒畫面上最多只有一種字幕，且完全遵守《影片製作 6 項基本原則》第 1 條（字幕帶淨空）。
+- [ ] **時間軸合法**：片頭／片尾皆非負且至少保留 0.5 秒歌曲；每段 VO／SFX 完整落在成片範圍內（程式會拒絕不合法設定）。
 - [ ] **整體響度**：成片 `ebur128` 落在 `-15.5 ± 0.5 LUFS`，峰值 `≤ -1 dBFS`（`review_mv.py --audio-cues` 的判準；`make_mv.py` 限幅在約 -2.9 dBFS）。
