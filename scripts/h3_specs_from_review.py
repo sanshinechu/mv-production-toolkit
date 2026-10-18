@@ -12,7 +12,7 @@ r"""把三方審核定案的「H3 分鏡」拆成一鏡一個 cutNN.json，檢�
 - 「H3 分鏡」階段必須已定案（approved）
 - 每個 ### cutNN 後面的 ```json 區塊都是合法 JSON
 - 欄位規則（照 15_ai共筆工作流/flows/specs/H3分鏡.md）：size 1344×768、duration ≤ 12、draft true、
-  upscale rtx|flashvsr、music N/A、沒有 audio／dialogue、style 全片逐字相同
+  upscale 只收 flashvsr（rtx 在 A100 上會 code -14 失敗，直接退回）、music N/A、沒有 audio／dialogue、style 全片逐字相同
 - 對分鏡表：cut 編號一致、duration = 分鏡秒數 + 0.5
 - H3 官方六段格式 lint（colab_mv/tools/h3_shot.py 的 build_prompt＋lint）0 錯誤
 """
@@ -93,8 +93,10 @@ def main():
             e.append(f"duration {dur} ≠ 分鏡 {sb[cut]} + 0.5")
         if j.get("draft") is not True:
             e.append("draft 要是 true")
-        if j.get("upscale") not in ("rtx", "flashvsr"):
-            e.append(f"upscale 是 {j.get('upscale')!r}，要 rtx 或 flashvsr")
+        if j.get("upscale") == "rtx":
+            e.append("upscale 不能用 rtx：A100 上 RTX VSR 會 NvVFX_Load failed (code -14) 整鏡失敗，改用 \"flashvsr\"")
+        elif j.get("upscale") != "flashvsr":
+            e.append(f"upscale 是 {j.get('upscale')!r}，要 \"flashvsr\"")
         if j.get("music") != "N/A":
             e.append("music 要是 \"N/A\"")
         for bad in ("audio", "dialogue"):

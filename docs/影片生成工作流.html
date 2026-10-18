@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><title>MV 影片生成工作流</title>
+<style>
+:root{--ink:#1f2430;--sub:#5b6270;--line:#d5d9e0;--bg:#f6f4ef;--card:#fff;
+--a:#2f6fdb;--b:#1f9d6b;--c:#c2410c;--d:#7c3aed;--warn:#b42318;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;color:var(--ink);}
+.wrap{width:1600px;padding:40px 48px 36px}
+h1{margin:0 0 4px;font-size:38px;letter-spacing:1px}
+.meta{color:var(--sub);font-size:17px;margin-bottom:26px}
+.stage{display:flex;align-items:center;gap:12px;margin:22px 0 12px}
+.stage .no{background:var(--ink);color:#fff;border-radius:20px;padding:4px 14px;font-size:16px;font-weight:700}
+.stage .t{font-size:24px;font-weight:700}
+.stage .s{color:var(--sub);font-size:16px}
+.row{display:flex;gap:10px;align-items:stretch}
+.step{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;position:relative}
+.step b{display:block;font-size:18px;margin:22px 0 4px}
+.step span{font-size:15px;color:var(--sub);line-height:1.45}
+.step .who{position:absolute;top:10px;right:12px;font-size:13px;color:#fff;border-radius:10px;padding:1px 8px}
+.who.t{background:#8a6d3b}.who.m{background:#0f766e}.who.c{background:#3d4a5c}.who.x{background:#6b7280}
+.arrow{align-self:center;color:#9aa1ad;font-size:22px}
+.rv{display:table;margin-top:6px;font-size:13.5px;color:#7a3e00;background:#fff3dd;border:1px solid #f0c27a;border-radius:8px;padding:1px 8px}
+.rule{background:#fff3dd;border:2px solid #f0c27a;border-radius:12px;padding:12px 18px;font-size:18px;line-height:1.5;color:#5a3300}
+.gate{margin:14px 0 0;background:#fff7e6;border:1px dashed #e0a43a;border-radius:12px;padding:10px 16px;font-size:17px}
+.routes{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.route{background:var(--card);border-radius:14px;border:2px solid var(--line);overflow:hidden;display:flex;flex-direction:column}
+.route .hd{color:#fff;padding:12px 16px}
+.route .hd .n{font-size:26px;font-weight:800}
+.route .hd .w{font-size:15px;opacity:.95;margin-top:2px}
+.route .bd{padding:12px 16px 14px;font-size:15.5px;line-height:1.55;flex:1}
+.route .bd .k{color:var(--sub);display:inline-block;width:58px}
+.route .bd ul{margin:6px 0 0 0;padding-left:18px}
+.route .bd li{margin:2px 0}
+.tag{display:inline-block;font-size:13px;border-radius:8px;padding:1px 8px;margin:2px 4px 2px 0;border:1px solid}
+.ok{color:#137a4b;border-color:#8fd3b3;background:#eefaf4}
+.no{color:var(--warn);border-color:#f2b8b5;background:#fff1f0}
+.mid{color:#8a5a00;border-color:#f0cf8a;background:#fff8e6}
+.A{border-color:var(--a)}.A .hd{background:var(--a)}
+.B{border-color:var(--b)}.B .hd{background:var(--b)}
+.C{border-color:var(--c)}.C .hd{background:var(--c)}
+.D{border-color:var(--d)}.D .hd{background:var(--d)}
+.side{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;margin-top:14px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:15.5px;line-height:1.55}
+.box h3{margin:0 0 6px;font-size:18px}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td,th{border-bottom:1px solid #eceef2;padding:4px 6px;text-align:left}
+th{color:var(--sub);font-weight:600}
+.stop{background:#fff1f0;border:2px solid var(--warn);}
+.legend{margin-top:18px;color:var(--sub);font-size:14px;display:flex;gap:18px;flex-wrap:wrap}
+</style></head><body><div class="wrap">
+
+<h1>MV 影片生成工作流（2026-10-18 盤點）</h1>
+<div class="meta">正本：01_MV製作/docs/影片分流策略.md（d475f5b）｜整支 MV 選一條路線，個別鏡頭可用 🅲／🅳 補生｜點數為 10/18 實查</div>
+
+<div class="rule">🔁 <b>全流程規則：所有指令與提示詞都要三方共審</b>（cowrite：Claude × Codex × Gemini）到「沒有意見」才往下走——劇本、歌詞＋曲風、角色與分鏡圖提示詞、時間軸分鏡、影片提示詞，以及各路線的 H3 分鏡、Flow 提示詞、Magnific／Kling 生成指令。</div>
+<div class="stage"><span class="no">階段 1</span><span class="t">概念到提示詞</span><span class="s">純文字＋分鏡圖，不扣點</span></div>
+<div class="row">
+  <div class="step"><span class="who m">三家皆可</span><b>劇本</b><span>mv-13 微電影三幕劇<br>（要劇情才用）</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>歌詞＋曲風</b><span>mv-01</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who t">老師</span><b>SUNO 生歌</b><span>依實際長度<br>重算段落秒數</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>角色定妝</b><span>mv-02＋鎖臉，單張半身參考圖<br>Codex／Antigravity 用<b style="display:inline;font-size:15px;margin:0">內建免費生圖</b></span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>分鏡圖</b><span>mv-03／04／05 每鏡一張首幀<br>Codex／Antigravity 用<b style="display:inline;font-size:15px;margin:0">內建免費生圖</b></span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>時間軸分鏡</b><span>mv-11 對拍切點<br>標「最難一鏡」</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>影片提示詞</b><span>mv-06</span></div>
+</div>
+<div class="gate">🚦 影片提示詞共審「沒有意見」→ 老師選路線 → 列清單（秒數、首幀、點數）→ <b>老師說「直接生影片」才生</b> → 一律<b>先做最難一鏡</b>，沒問題再整批</div>
+
+<div class="stage"><span class="no">階段 2</span><span class="t">選一條路線生影片</span><span class="s">成品一律放 outputs/&lt;MV名&gt;/videos-raw/cutNN_短名.mp4，原聲組裝時丟掉</span></div>
+<div class="routes">
+  <div class="route A"><div class="hd"><div class="n">🅰 Colab H3</div><div class="w">Claude／Codex／Antigravity 皆可代跑｜Colab A100＋大 RAM</div></div>
+    <div class="bd">
+      <div><span class="k">模型</span>MiniMax H3（ComfyUI）</div>
+      <div><span class="k">秒數</span>4–12 秒／鏡</div>
+      <div><span class="k">輸出</span>1344×768 → <b>FlashVSR</b> 放大到 1080p</div>
+      <div><span class="k">扣</span>Colab 運算單元（A100 約 6.77／時）</div>
+      <div><span class="k">速度</span>一鏡約 7～13 分鐘</div>
+      <ul><li>H3 分鏡要再三方審一次</li><li>RTX VSR 在 A100 跑不起來（code -14）</li><li>用完一定要斷線</li></ul>
+      <div style="margin-top:8px"><span class="tag ok">實戰：〈雨夜404檔案〉47 鏡</span></div>
+    </div></div>
+  <div class="route B"><div class="hd"><div class="n">🅱 Google Flow</div><div class="w">老師自己逐鏡生</div></div>
+    <div class="bd">
+      <div><span class="k">模型</span>Veo 3.1／<b>Omni 1.1 Flash</b></div>
+      <div><span class="k">秒數</span>4／6／8 秒（Extend 可延長）</div>
+      <div><span class="k">輸出</span>直接 1080p</div>
+      <div><span class="k">扣</span>Flow 點數</div>
+      <ul><li>首尾幀 → Frames to Video</li><li>鎖角色 → Ingredients（最多 3 張）</li><li><b>台詞對嘴 → Omni</b>（模型自己唸，多音字加注音）</li><li>小女孩臉部特寫會被擋</li></ul>
+      <div style="margin-top:8px"><span class="tag ok">實戰：〈雨停之前〉整支（4 鏡用 Omni 台詞）</span></div>
+    </div></div>
+  <div class="route C"><div class="hd"><div class="n">🅲 Magnific</div><div class="w">Claude 代跑｜剩 151,204 點</div></div>
+    <div class="bd">
+      <div><span class="k">預設</span><b>kling-30</b> 3–15 秒，90 點／秒</div>
+      <div><span class="k">最省</span>Veo 3.1 Lite 40 點／秒（4/6/8 秒）</div>
+      <div><span class="k">長鏡</span>Wan 3.0 最長 30 秒，200 點／秒</div>
+      <div><span class="k">最貴</span>Seedance 2.5 790 點／秒，留給最難一鏡</div>
+      <div><span class="k">對嘴</span>OmniHuman 圖＋人聲 180 點／秒</div>
+      <ul><li>生之前用 simulate_cost 試算（不扣點）</li><li>一律關音效 withSoundEffects:false</li><li>輸出 fps 待實測</li></ul>
+      <div style="margin-top:8px"><span class="tag mid">還沒整支跑過</span><span class="tag mid">對嘴未實測</span></div>
+    </div></div>
+  <div class="route D"><div class="hd"><div class="n">🅳 Kling.ai</div><div class="w">Claude 代跑｜官方帳號剩 660 點</div></div>
+    <div class="bd">
+      <div><span class="k">獨有</span><b>Kling 4.0</b> 3–30 秒、最多 10 張關鍵幀</div>
+      <div><span class="k">鎖角色</span><b>Element</b> 主體，每鏡用編號叫出</div>
+      <div><span class="k">輸出</span>預設 720p，<b>要明寫 1080p</b></div>
+      <div><span class="k">扣</span>Kling 點數（沒有試算工具）</div>
+      <ul><li>4.0＋Element 要走 omni_ref_video（按秒計費）</li><li>首幀＋Element 用 Kling 3.0</li><li>第一鏡前後查點數相減</li><li>660 點不夠就只補關鍵鏡</li></ul>
+      <div style="margin-top:8px"><span class="tag no">還沒生過</span><span class="tag mid">點數待第一鏡實測</span></div>
+    </div></div>
+</div>
+
+<div class="side">
+  <div class="box"><h3>🎤 對嘴／說話鏡頭怎麼選</h3>
+    <table><tr><th>需求</th><th>用什麼</th><th>狀態</th></tr>
+    <tr><td>角色唸台詞、口白、rap</td><td>🅱 Flow Omni（台詞寫在提示詞）</td><td><span class="tag ok">已驗證</span></td></tr>
+    <tr><td>照 SUNO 歌聲對嘴唱</td><td>🅲 OmniHuman（角色圖＋分離出的人聲，最長 30 秒）</td><td><span class="tag mid">未實測</span></td></tr>
+    <tr><td>同上，不想花 Magnific 點數</td><td>🅱 Omni 拿 SUNO 人聲當聲音參考</td><td><span class="tag mid">未試</span></td></tr>
+    <tr><td>把現成影片改成對嘴</td><td>🅲 Veed Sync 2.0（140 點／秒）</td><td><span class="tag mid">未實測</span></td></tr></table>
+  </div>
+  <div class="box"><h3>🩹 補鏡</h3>
+    主路線某一鏡生不好 → 同檔名丟給 🅲 或 🅳 重生，舊檔移到 videos-raw/_old/，每日筆記記下哪幾鏡是補的。<br><br>
+    <b>沒生成成功的鏡頭</b>：make_mv.py 會自動退回同編號的靜態圖做 Ken Burns 頂著。
+  </div>
+</div>
+
+<div class="stage"><span class="no">階段 3</span><span class="t">組裝、檢查、上架</span><span class="s">四條路共用同一套</span></div>
+<div class="row">
+  <div class="step"><span class="who c">Claude</span><b>收件檢查</b><span>collect_videos --check<br>缺鏡、秒數、1080p、24 fps</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who c">Claude</span><b>組裝</b><span>make_mv --videos<br>裁秒數、丟原聲、再擋一次規格</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who c">Claude</span><b>聲音與字幕</b><span>mv-14 口白閃避混音<br>對白＋歌詞雙層字幕</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who c">Claude</span><b>機器檢查</b><span>review_mv<br>產出 pass1／cuts 抽幀圖</span></div><div class="arrow">→</div>
+  <div class="step stop"><span class="who t">老師</span><b>⛔ 人工抽幀</b><span>字幕帶、亂碼、角色崩壞、轉場<br>說「抽幀確認 OK」才算完成</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who c">Claude</span><b>打包上架</b><span>metadata.md、封面<br>upload_youtube（先 private）</span></div>
+</div>
+
+<div class="legend"><span>標籤：<span class="tag ok">已驗證</span><span class="tag mid">待實測</span><span class="tag no">還沒做過</span></span><span>角色：老師＝老師操作／Claude＝Claude 代跑／三家皆可＝Claude、Codex、Antigravity 都能跑（生圖步驟優先給有內建免費生圖的 Codex、Antigravity）</span><span>共同規格：1920×1080、24 fps、秒數 ≥ 分鏡秒數</span></div>
+</div></body></html>
