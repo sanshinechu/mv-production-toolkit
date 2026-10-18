@@ -32,7 +32,11 @@ author: 羅東國小資訊組長
 
 1. **台詞長度檢查**：對照分鏡表的口白區間，每秒不超過 **3.8 個中文字**（留呼吸感）。
 2. **TTS 生成與挑選**：
-   - 可使用本機或雲端 TTS（如 Edge-TTS 台灣語音 `zh-TW-HsiaoChenNeural`、BreezyVoice 或 ElevenLabs）。⚠️ `zh-TW-YunJheNeural` 自 2026-10-14 起回 NoAudioReceived，換聲線前先出試聽檔讓使用者選。
+   - 配音引擎三種任選，**先出試聽檔讓使用者挑**：
+     - **edge-tts**：免費、最快；女聲 `zh-TW-HsiaoChenNeural` 可用，男聲 `zh-TW-YunJheNeural` 2026-10-14 起回 NoAudioReceived、出不了聲。
+     - **Gemini TTS**（走 Vertex）：台灣口音堪用，阿福 Charon／Orus、小雯 Kore、童聲 Leda；會重複念或自己加字，台詞用引號框住、明講只念一次，每句出 2 版挑。
+     - **BreezyVoice**：本機聲線克隆，可以用老師自己的聲音；目前只裝在資訊組主機 1 的 `D:\software\17_本地端語音`，那台合成回 500 是 pyarrow 被應用程式控制擋（見記憶 breezyvoice-pyarrow-blocked-host1）；會漏字或加字。
+   - 不管用哪一種，配完都轉回文字逐句核對，**讀音也要比**（多音字、地名、人名），不是只比字形。
    - **山獅霸防呆法**：重要獨白一次生成 3–5 個候選檔，跑一次 Whisper ASR 檢查有沒有念錯破音字，挑字音全對、停頓最自然的一版，存為 `outputs/<MV名>/audio/vo_cutNN.wav`。
 
 ### Step 2：環境音效（SFX）配置
