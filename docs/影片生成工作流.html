@@ -121,15 +121,15 @@ th{color:var(--sub);font-weight:600}
   </div>
 </div>
 
-<div class="stage"><span class="no">階段 3</span><span class="t">組裝、檢查、上架</span><span class="s">四條路共用同一套</span></div>
+<div class="stage"><span class="no">階段 3</span><span class="t">組裝、檢查、上架</span><span class="s">四條路共用同一套，全部三家 AI 都能跑</span></div>
 <div class="row">
-  <div class="step"><span class="who c">Claude</span><b>收件檢查</b><span>collect_videos --check<br>缺鏡、秒數、1080p、24 fps</span></div><div class="arrow">→</div>
-  <div class="step"><span class="who c">Claude</span><b>組裝</b><span>make_mv --videos<br>裁秒數、丟原聲、再擋一次規格</span></div><div class="arrow">→</div>
-  <div class="step"><span class="who c">Claude</span><b>聲音與字幕</b><span>mv-14 口白閃避混音<br>對白＋歌詞雙層字幕</span></div><div class="arrow">→</div>
-  <div class="step"><span class="who c">Claude</span><b>機器檢查</b><span>review_mv<br>產出 pass1／cuts 抽幀圖</span></div><div class="arrow">→</div>
-  <div class="step stop"><span class="who t">老師</span><b>⛔ 人工抽幀</b><span>字幕帶、亂碼、角色崩壞、轉場<br>說「抽幀確認 OK」才算完成</span></div><div class="arrow">→</div>
-  <div class="step"><span class="who c">Claude</span><b>打包上架</b><span>metadata.md、封面<br>upload_youtube（先 private）</span></div>
+  <div class="step"><span class="who m">三家皆可</span><b>收件檢查</b><span>collect_videos --check<br>缺鏡、秒數、1080p、24 fps</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>組裝</b><span>make_mv --videos<br>裁秒數、丟原聲、再擋一次規格</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>聲音與字幕</b><span>mv-14 口白閃避混音<br>對白＋歌詞雙層字幕</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>機器檢查</b><span>review_mv<br>產出 pass1／cuts 抽幀圖</span></div><div class="arrow">→</div>
+  <div class="step stop"><span class="who m">三家各看</span><b>⛔ 三家抽幀</b><span>字幕帶、亂碼、角色崩壞、轉場<br>三家都說 OK 才算完成</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>打包上架</b><span>metadata.md、封面<br>先 private，老師說公開才改</span></div>
 </div>
 
-<div class="legend"><span>標籤：<span class="tag ok">已驗證</span><span class="tag mid">待實測</span><span class="tag no">還沒做過</span></span><span>角色：老師＝老師操作／Claude＝Claude 代跑／三家皆可＝Claude、Codex、Antigravity 都能跑（生圖步驟優先給有內建免費生圖的 Codex、Antigravity）</span><span>共同規格：1920×1080、24 fps、秒數 ≥ 分鏡秒數</span></div>
+<div class="legend"><span>標籤：<span class="tag ok">已驗證</span><span class="tag mid">待實測</span><span class="tag no">還沒做過</span></span><span>角色：老師＝老師操作／三家皆可＝Claude、Codex、Antigravity 都能跑（生圖步驟優先給有內建免費生圖的 Codex、Antigravity）</span><span>共同規格：1920×1080、24 fps、秒數 ≥ 分鏡秒數</span></div>
 </div></body></html>

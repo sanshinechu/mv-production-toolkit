@@ -401,7 +401,7 @@
 
 ### 🎯 階段 2️⃣：視覺生成
 
-> ⚠️ 本階段（Step 7～10）的工具與指令是舊做法。現行：🅰 Colab H3＋FlashVSR 放大、🅱 Google Flow、🅲 Magnific 或 🅳 Kling.ai → `collect_videos.py` → `make_mv.py --videos` → `review_mv.py` → 人工抽幀，見 [docs/影片分流策略.md](docs/影片分流策略.md)。
+> ⚠️ 本階段（Step 7～10）的工具與指令是舊做法。現行：🅰 Colab H3＋FlashVSR 放大、🅱 Google Flow、🅲 Magnific 或 🅳 Kling.ai → `collect_videos.py` → `make_mv.py --videos` → `review_mv.py` → 三家抽幀，見 [docs/影片分流策略.md](docs/影片分流策略.md)。
 
 ---
 

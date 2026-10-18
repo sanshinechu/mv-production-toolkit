@@ -19,7 +19,7 @@
 | 8🅱 | Flow 提示詞審核 → 老師在 Flow 生成 → 放回 | `--flow mv-flow`、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 9 | 組裝 1080p | `make_mv.py --videos --storyboard --size 1920x1080` | `{{MV名}}_完整MV.mp4` | [ ] |
 | 10 | 自動檢查 | `review_mv.py --storyboard` | `review/` | [ ] |
-| 11 | ⛔ **人工抽幀**（字幕淨空／亂碼／角色／轉場） | 老師看 `review/*_pass1.jpg`、`*_cuts.jpg` | 老師說「抽幀確認 OK」→ 記日期 | [ ] |
+| 11 | ⛔ **三家抽幀**（字幕淨空／亂碼／角色／轉場） | Claude／Codex／Antigravity 各自看 `review/*_pass1.jpg`、`*_cuts.jpg` | 三家都說 OK → 記日期與各家結論 | [ ] |
 | 12 | 打包與上傳 | mv-production-packaging、youtube-publisher | `metadata.md`、`cover.png`、`youtube-upload.json` | [ ] |
 
 ## 常用指令（在 01_MV製作 根目錄執行）
