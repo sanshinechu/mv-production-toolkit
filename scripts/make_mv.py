@@ -14,11 +14,11 @@ make_mv.py — 純 ffmpeg 組裝 MV（《那些年，還在》12 cut 版）
 
 用法（每支 MV 改上面的 STORYBOARD，或複製本檔到該片資料夾再改）：
   python make_mv.py --shots <分鏡圖資料夾> --music <歌曲.mp3> --out <輸出.mp4>
-  例：python make_mv.py --shots "..\..\11_Opencode影片工作流\mv_project\shots" ^
-        --music "..\..\11_Opencode影片工作流\mv_project\music\那些年，還在.mp3" ^
-        --out "..\..\11_Opencode影片工作流\mv_project\final\MV_那些年還在.mp4"
+  例：python make_mv.py --shots "outputs\<MV名>\shots" ^
+        --music "outputs\<MV名>\<歌名>.mp3" ^
+        --out "outputs\<MV名>\<MV名>_完整MV.mp4"
 
-2026-10-09 從 11_Opencode影片工作流/tools/ 搬來入庫（舊檔留在該處 tools/_old/）。
+2026-10-09 從 11_Opencode影片工作流/tools/ 搬來入庫；11 那個資料夾 2026-10-18 起不再使用（老師決定移除）。
 不用 -shortest（AGENTS.md 規定，會截斷音樂）：音樂先檢查夠長，再明確用 -t 裁到分鏡總長。
 """
 import argparse

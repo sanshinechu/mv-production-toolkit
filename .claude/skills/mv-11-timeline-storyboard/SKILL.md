@@ -77,7 +77,7 @@ ffmpeg -i "歌曲.mp3" -af "asetnsamples=44100,astats=metadata=1:reset=1,ametada
 
 ## 📌 參考範例
 
-`11_Opencode/mv_project/storyboard_v2.md`（寫實版）與 `storyboard_v3_creative.md`（塗鴉宇宙創意版）為本技能 SOP 的實際產出，含完整的能量判讀與切點設計案例。
+目前沒有可直接參考的實際產出：〈那些年，還在〉的寫實版、塗鴉版分鏡表原本放在 `11_Opencode影片工作流`，那個資料夾 2026-10-18 起不再使用（老師決定移除），檔案也已找不到。之後以 01_MV製作 `outputs/<MV名>/storyboard_vN.md` 的第一份實際產出當範例。
 
 ## ⚠️ 風格提醒
 

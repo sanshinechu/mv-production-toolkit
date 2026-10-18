@@ -74,4 +74,4 @@ powershell -ExecutionPolicy Bypass -File gen_shots.ps1
 
 ## 📌 參考範例
 
-`11_Opencode/`：`tools/gen_shots_v3.ps1`（實戰腳本）、`mv_project/prompts_v3.md`（塗鴉宇宙 prompt 表）、`mv_project/shots_v3/`（成品）。
+本技能 `scripts/gen_shots_template.ps1` 就是實戰腳本整理出來的通用版，照它填 cuts 清單即可。〈那些年，還在〉的實戰腳本、prompt 表與成品原本放在 `11_Opencode影片工作流`，2026-10-18 起不再使用（老師決定移除、不保留）。
