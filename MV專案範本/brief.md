@@ -10,6 +10,6 @@
 
 ## 選定影片路線（步驟 7 填）
 
-- 路線：🅰 Colab H3／🅱 Google Flow／🅲 Magnific
+- 路線：🅰 Colab H3／🅱 Google Flow／🅲 Magnific／🅳 Kling.ai
 - 理由：
 - 決定日期：
