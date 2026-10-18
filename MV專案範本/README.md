@@ -14,7 +14,7 @@
 | 4 | 時間軸分鏡表 | mv-11 | `storyboard_v1.md`（秒數加總＝歌長、單鏡 ≤10 秒、標最難一鏡） | [ ] |
 | 5 | 場景提示詞、分鏡圖 | mv-03、mv-04（共修）、mv-12 生圖 | `shots/cutNN_*.png` | [ ] |
 | 6 | 影片提示詞 | mv-06（**審核**，三家無意見） | 定案稿在共修紀錄 → 記到 `共審紀錄.md` | [ ] |
-| 7 | 選路線 | 老師決定整支 MV 走 🅰 Colab H3 或 🅱 Google Flow | 寫在 `brief.md` 最後一行 | [ ] |
+| 7 | 選路線 | 老師決定整支 MV 走 🅰 Colab H3、🅱 Google Flow 或 🅲 Magnific | 寫在 `brief.md` 最後一行 | [ ] |
 | 8🅰 | H3 分鏡審核 → 拆檔 → 清單 → 生成 → 放大 → 搬回 | `--flow mv-h3`、`h3_specs_from_review.py`、`h3_batch.py`、`collect_videos.py` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 8🅱 | Flow 提示詞審核 → 老師在 Flow 生成 → 放回 | `--flow mv-flow`、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 9 | 組裝 1080p | `make_mv.py --videos --storyboard --size 1920x1080` | `{{MV名}}_完整MV.mp4` | [ ] |

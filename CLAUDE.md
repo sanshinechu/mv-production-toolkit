@@ -64,7 +64,7 @@
 
 - 影片素材收件與檢查：`scripts/collect_videos.py`；三支腳本共用 `scripts/storyboard_md.py` 讀 mv-11 分鏡表。
 
-> 🔀 **影片分流**：影片提示詞三方共審「無意見」後，整支 MV 選 Colab H3（Claude 代跑）或 Google Flow（老師自己生），規則唯一正本在 [docs/影片分流策略.md](docs/影片分流策略.md)，這裡不抄內容。
+> 🔀 **影片分流**：影片提示詞三方共審「無意見」後，整支 MV 選 Colab H3（Claude 代跑）、Google Flow（老師自己生）或 Magnific（Claude 代跑，扣 Magnific 點數），規則唯一正本在 [docs/影片分流策略.md](docs/影片分流策略.md)，這裡不抄內容。
 
 ---
 
@@ -401,7 +401,7 @@
 
 ### 🎯 階段 2️⃣：視覺生成
 
-> ⚠️ 本階段（Step 7～10）的工具與指令是舊做法。現行：🅰 Colab H3＋AI 放大 或 🅱 Google Flow → `collect_videos.py` → `make_mv.py --videos` → `review_mv.py` → 人工抽幀，見 [docs/影片分流策略.md](docs/影片分流策略.md)。
+> ⚠️ 本階段（Step 7～10）的工具與指令是舊做法。現行：🅰 Colab H3＋AI 放大、🅱 Google Flow 或 🅲 Magnific → `collect_videos.py` → `make_mv.py --videos` → `review_mv.py` → 人工抽幀，見 [docs/影片分流策略.md](docs/影片分流策略.md)。
 
 ---
 

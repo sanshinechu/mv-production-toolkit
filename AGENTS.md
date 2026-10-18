@@ -97,7 +97,7 @@
 
 ---
 
-> 🔀 **影片分流**：影片提示詞三方共審「無意見」後，整支 MV 選 Colab H3（Claude 代跑）或 Google Flow（老師自己生），規則唯一正本在 [docs/影片分流策略.md](docs/影片分流策略.md)，這裡不抄內容。
+> 🔀 **影片分流**：影片提示詞三方共審「無意見」後，整支 MV 選 Colab H3（Claude 代跑）、Google Flow（老師自己生）或 Magnific（Claude 代跑，扣 Magnific 點數），規則唯一正本在 [docs/影片分流策略.md](docs/影片分流策略.md)，這裡不抄內容。
 
 ## MV_07 圖片處理大師
 

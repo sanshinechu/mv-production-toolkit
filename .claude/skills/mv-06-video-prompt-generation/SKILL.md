@@ -285,7 +285,7 @@ A: 可以。描述色彩分級、失焦、光斑、動感模糊等效果都是�
 
 影片提示詞完成後，建議：
 
-> 🔀 **影片分流**（2026-10-10）：影片提示詞三方共審（`15_ai共筆工作流/cowrite.py --flow mv`）「無意見」後，整支 MV 選 **Colab H3**（Claude 寫 H3 分鏡初稿 → `--flow mv-h3` 三方審核 → 拆檔檢查 → 列清單給老師確認後代跑，AI 放大到 1080p）或 **Google Flow**（`--flow mv-flow --from` 再共審 Flow 提示詞，老師自己生、放回 `videos-raw/`）。規則唯一正本：`docs/影片分流策略.md`（01_MV製作 專案內），這裡不抄內容。
+> 🔀 **影片分流**（2026-10-10）：影片提示詞三方共審（`15_ai共筆工作流/cowrite.py --flow mv`）「無意見」後，整支 MV 選 **Colab H3**（Claude 寫 H3 分鏡初稿 → `--flow mv-h3` 三方審核 → 拆檔檢查 → 列清單給老師確認後代跑，AI 放大到 1080p）、**Google Flow**（`--flow mv-flow --from` 再共審 Flow 提示詞，老師自己生、放回 `videos-raw/`）或 **Magnific**（2026-10-18 加：Claude 透過 MCP 代跑，內含 Kling／Seedance，先 `simulate_cost` 報點數；也可只補單鏡）。規則唯一正本：`docs/影片分流策略.md`（01_MV製作 專案內），這裡不抄內容。
 
 1. **media-generation Skill** → 使用提示詞生成影片
 2. **MV_09 Google Flow 微電影製作** → 製作首尾幀無縫轉場
