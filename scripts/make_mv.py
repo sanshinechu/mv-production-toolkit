@@ -156,8 +156,17 @@ def find_video(videos_dir, prefix):
         print(f"  [ERR] {num} 有 {len(m)} 支影片，留一支、其餘移到 _old/：{[p.name for p in m]}"); sys.exit(1)
     return m[0] if m else None
 
-def make_video_clip(ffmpeg, video, trans_in, trans_out, dur, out_path):
-    """影片素材：裁到分鏡秒數、縮放裁切到輸出尺寸、丟掉原聲（H3／Veo 自己配的聲音不要）、套同一套淡入淡出。"""
+def has_last_frame(shots_dir, prefix, fit_cuts):
+    """這鏡是不是首尾幀：--fit 有列，或分鏡圖資料夾有 cutNN_last.*。"""
+    num = prefix.split("_")[0]
+    if num in fit_cuts:
+        return True
+    return bool(shots_dir and any(shots_dir.glob(f"{num}_last.*")))
+
+def make_video_clip(ffmpeg, video, trans_in, trans_out, dur, out_path, fit=False):
+    """影片素材：裁到分鏡秒數、縮放裁切到輸出尺寸、丟掉原聲（H3／Veo 自己配的聲音不要）、套同一套淡入淡出。
+    fit=True（首尾幀鏡頭）且影片比分鏡長 → 整支加速塞進分鏡秒數，不剪後半：尾幀在片子最後，
+    從頭剪會把它剪掉而且不報錯（Veo 3.1 Lite 在 Flow 固定生 8 秒，分鏡 4 秒就只剩前半，2026-10-30 老師定）。"""
     have = probe_duration(video)
     if have + 0.05 < dur:
         print(f"  [ERR] {video.name} 只有 {have:.2f}s，分鏡要 {dur}s（先跑 collect_videos.py --check）"); return False
@@ -168,7 +177,13 @@ def make_video_clip(ffmpeg, video, trans_in, trans_out, dur, out_path):
               "真的要硬放大才加 --allow-lowres）"); return False
     if abs(fps - FPS) > 0.1 and not ALLOW_FPS:
         print(f"  [ERR] {video.name} 是 {fps} fps，不是 {FPS}（轉換會掉格或重複格；確定要用才加 --allow-fps）"); return False
-    vf = (f"scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,crop={WIDTH}:{HEIGHT},"
+    speed = ""
+    if fit and have > dur + 0.05:
+        ratio = have / dur
+        print(f"      首尾幀：{have:.2f}s 加速 {ratio:.2f} 倍塞進 {dur}s（不剪後半）"
+              + ("  [注意] 超過 2 倍，動作會明顯變快，抽幀時看一下" if ratio > 2 else ""))
+        speed = f"setpts=PTS*{dur / have:.6f},"   # 放在 fps 前面，加速後再重取 24 格
+    vf = (f"{speed}scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,crop={WIDTH}:{HEIGHT},"
           f"fps={FPS},setsar=1,{build_fade_filter(trans_in, trans_out, dur, FPS)}")
     r = subprocess.run([str(ffmpeg), "-y", "-i", str(video), "-t", str(dur), "-an", "-vf", vf,
                         "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "fast", "-crf", "18", str(out_path)],
@@ -486,6 +501,8 @@ def main():
     p.add_argument("--size", default=f"{WIDTH}x{HEIGHT}", help="輸出尺寸，成品 1080p 用 1920x1080（預設 1280x720）")
     p.add_argument("--allow-lowres", action="store_true", help="允許低於輸出解析度的影片（會被硬放大，畫質差）")
     p.add_argument("--allow-fps", action="store_true", help=f"允許不是 {FPS} fps 的影片")
+    p.add_argument("--fit", help="首尾幀鏡頭（逗號分隔，如 cut28,cut42）：比分鏡長就加速塞進去、不剪後半；"
+                                 "--shots 裡有 cutNN_last.* 的鏡會自動算進來")
     p.add_argument("--prologue", type=float, default=None, help="微電影：片頭前導戲秒數（音樂延遲幾秒才進場）")
     p.add_argument("--epilogue", type=float, default=None, help="微電影：片尾餘韻秒數（音樂結束後留幾秒環境音或畫面）")
     p.add_argument("--audio-cues", help="微電影：口白與環境音設定檔 audio_cues.json（含 VO 自動閃避音樂與 SFX 混音）")
@@ -514,6 +531,7 @@ def main():
 
     shots = Path(args.shots).resolve() if args.shots else None
     videos = Path(args.videos).resolve() if args.videos else None
+    fit_cuts = {c.strip() for c in (args.fit or "").split(",") if c.strip()}
     music = Path(args.music).resolve()
     out_path = Path(args.out).resolve()   # 絕對路徑：concat 清單裡的相對路徑會以清單檔所在處為準
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -550,7 +568,8 @@ def main():
         vid = find_video(videos, prefix)
         if vid:
             print(f"  [{i+1:02d}/{len(STORYBOARD)}] {prefix} -> 影片 {vid.name} ({t_in}/{t_out}) {dur}s")
-            ok = make_video_clip(ffmpeg, vid, t_in, t_out, dur, clip)
+            ok = make_video_clip(ffmpeg, vid, t_in, t_out, dur, clip,
+                                 fit=has_last_frame(shots, prefix, fit_cuts))
         else:
             img = find_image(shots, prefix) if shots else None
             if not img:
