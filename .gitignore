@@ -118,3 +118,6 @@ assets/characters/
 
 # Google Drive 共用資料夾捷徑（指向各機自己的碟號，例如 colab_mv.lnk）
 *.lnk
+
+# flow_auto.py inspect 的截圖（含帳號畫面）
+_flow_inspect/

@@ -4,6 +4,7 @@ r"""影片分流的收件與交件前檢查（規則見 docs/影片分流策略.
 用法：
   python scripts/collect_videos.py <MV名> --storyboard outputs/<MV名>/storyboard_v2.md            # 🅰 Colab：搬回＋檢查
   python scripts/collect_videos.py <MV名> --storyboard outputs/<MV名>/storyboard_v2.md --check    # 🅱 Flow 放好後：只檢查
+  （專案已搬出 outputs/ 時加 --raw <專案>/videos-raw；<MV名> 仍是 colab_mv/outputs/ 底下的資料夾名）
 
 - 搬回：colab_mv/outputs/<MV名>/cutNN/clip_1080p.mp4 → outputs/<MV名>/videos-raw/cutNN_<短名>.mp4
   （同編號已有舊檔就先移到 videos-raw/_old/<時間>/，不刪）
@@ -118,9 +119,10 @@ def main():
     ap.add_argument("mv", help="MV 名稱＝outputs/ 與 colab_mv/outputs/ 底下的資料夾名")
     ap.add_argument("--storyboard", required=True, help="mv-11 的 storyboard_vN.md")
     ap.add_argument("--check", action="store_true", help="只檢查（Flow 路線用），不從 Colab 搬")
+    ap.add_argument("--raw", help="videos-raw 資料夾（專案不在 outputs/ 時用，給當台封存區那份的絕對路徑 <封存區>\\<MV名>\\videos-raw）")
     a = ap.parse_args()
     sb = storyboard_md.load_or_exit(a.storyboard)
-    raw = ROOT / "outputs" / a.mv / "videos-raw"
+    raw = Path(a.raw) if a.raw else ROOT / "outputs" / a.mv / "videos-raw"
     raw.mkdir(parents=True, exist_ok=True)
     if not a.check:
         collect(a.mv, sb, raw)

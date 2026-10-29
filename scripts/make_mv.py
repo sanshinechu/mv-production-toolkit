@@ -11,6 +11,7 @@ make_mv.py — 純 ffmpeg 組裝 MV（《那些年，還在》12 cut 版）
 
 微電影（mv-13／mv-14，2026-10-17）：--audio-cues 讀片頭／片尾戲秒數、口白（音樂平滑閃避）與環境音；
 --sub-lyrics／--sub-dialog 燒雙層字幕，歌詞自動平移片頭秒數並拿掉跟口白重疊的條目。
+--cover <封面.png>（2026-10-27）：字幕燒完後在最前面接封面（預設 3 秒、靜音）；review_mv.py 要給同樣的 --cover-sec。
 
 用法（每支 MV 改上面的 STORYBOARD，或複製本檔到該片資料夾再改）：
   python make_mv.py --shots <分鏡圖資料夾> --music <歌曲.mp3> --out <輸出.mp4>
@@ -127,7 +128,7 @@ def make_clip(ffmpeg, img_path, anim, trans_in, trans_out, dur, out_path, tmp_di
     full_vf = f"{vf},{fade}"
 
     cmd = [
-        str(ffmpeg), "-y",
+        str(ffmpeg), "-nostdin", "-loglevel", "error", "-y",
         "-loop", "1", "-i", str(img_path),
         "-vf", full_vf,
         "-t", str(dur),
@@ -454,6 +455,25 @@ def prepare_lyrics_srt(src, dst, offset, blocked_spans):
     return len(kept), dropped
 
 
+def prepend_cover(ffmpeg, cover, sec, body, out):
+    """封面靜圖（縮放到成片尺寸、頭尾各 0.5 秒淡入淡出）＋同長度靜音，接在 body 前面輸出到 out。"""
+    fade = min(0.5, sec / 4)
+    fc = (f"[0:v]scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=decrease:flags=lanczos,"
+          f"pad={WIDTH}:{HEIGHT}:(ow-iw)/2:(oh-ih)/2,fps={FPS},format=yuv420p,setsar=1,"
+          f"fade=t=in:st=0:d={fade},fade=t=out:st={sec - fade}:d={fade}[cv];"
+          f"[2:v]setsar=1[mv];[2:a]aresample=48000[ma];[cv][1:a][mv][ma]concat=n=2:v=1:a=1[v][a]")
+    cmd = [str(ffmpeg), "-nostdin", "-loglevel", "error", "-y", "-loop", "1", "-t", f"{sec:.3f}", "-i", str(cover),
+           "-f", "lavfi", "-t", f"{sec:.3f}", "-i", "anullsrc=r=48000:cl=stereo",
+           "-i", str(body), "-filter_complex", fc, "-map", "[v]", "-map", "[a]",
+           "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
+           "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", str(out)]
+    r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="ignore")
+    if r.returncode != 0:
+        print(f"  [FFMPEG ERROR] 接封面失敗：{r.stderr[-600:]}")
+        return False
+    return True
+
+
 def main():
     global STORYBOARD, WIDTH, HEIGHT, ALLOW_LOWRES, ALLOW_FPS
     # 2026-10-10：Windows 主控台／被別的程式（Codex 等）擷取輸出時預設 cp950，--help 的中文會亂碼
@@ -472,9 +492,13 @@ def main():
     p.add_argument("--sub-lyrics", help="歌詞字幕 SRT（以歌曲開頭為 0；有片頭戲會自動平移，與口白重疊的條目自動拿掉）")
     p.add_argument("--lyrics-offset", type=float, default=None, help="歌詞 SRT 平移秒數（預設＝片頭戲秒數；SRT 已經對好成片時間軸就給 0）")
     p.add_argument("--sub-dialog", help="微電影：對白／口白字幕 SRT（以成片時間軸為 0，不平移）")
+    p.add_argument("--cover", help="片頭封面圖（標題＋署名），接在第一鏡前面、靜音；字幕與口白時間軸不受影響")
+    p.add_argument("--cover-sec", type=float, default=3.0, help="封面秒數（預設 3，含頭尾各 0.5 秒淡入淡出）")
     p.add_argument("--music", required=True)
     p.add_argument("--out",   required=True)
     args = p.parse_args()
+    if args.cover and not Path(args.cover).exists():
+        p.error(f"找不到封面 {args.cover}")
     ALLOW_LOWRES, ALLOW_FPS = args.allow_lowres, args.allow_fps
     if args.storyboard:
         import storyboard_md
@@ -568,23 +592,30 @@ def main():
         vf_subs.append("subtitles=dialog.srt:force_style='FontName=Microsoft JhengHei,FontSize=22,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,MarginV=25'")
 
     cmd = [
-        str(ffmpeg), "-y",
+        str(ffmpeg), "-nostdin", "-loglevel", "error", "-y",
         "-f", "concat", "-safe", "0", "-i", str(list_file),
         "-i", str(final_wav),
     ]
     if vf_subs:
         cmd += ["-vf", ",".join(vf_subs)]
+    body_path = tmp / "body.mp4" if args.cover else out_path
     cmd += [
         "-c:v", "libx264", "-preset", "medium", "-crf", "20",
         "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "192k",
         "-t", f"{total_dur:.3f}",
-        str(out_path),
+        str(body_path),
     ]
     r = subprocess.run(cmd, capture_output=True, text=True, cwd=str(tmp),
                        encoding="utf-8", errors="ignore")
     if r.returncode != 0:
         print(f"  [FFMPEG ERROR] {r.stderr[-600:]}"); sys.exit(1)
+
+    # Step 5: 片頭封面——等字幕燒完才接，字幕／口白時間軸都以第一鏡為 0，不用跟著平移
+    if args.cover:
+        print(f"\n  Step 5: 接上片頭封面 {Path(args.cover).name}（{args.cover_sec:g} 秒、靜音）...")
+        if not prepend_cover(ffmpeg, Path(args.cover).resolve(), args.cover_sec, body_path, out_path):
+            sys.exit(1)
 
     size_mb = out_path.stat().st_size / 1024 / 1024
     print(f"\n  [OK] {out_path}")

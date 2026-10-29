@@ -73,9 +73,9 @@ def label(im, text, color=(255, 255, 0)):
     ImageDraw.Draw(im).text((6, 4), text, font=FONT, fill=color, stroke_width=2, stroke_fill=(0, 0, 0))
 
 
-def build_shots():
-    """把 STORYBOARD 換算成每鏡的起訖與「乾淨區」（扣掉淡入淡出）"""
-    shots, t = [], 0.0
+def build_shots(offset=0.0):
+    """把 STORYBOARD 換算成每鏡的起訖與「乾淨區」（扣掉淡入淡出）；offset＝片頭封面秒數"""
+    shots, t = [], offset
     for prefix, anim, t_in, t_out, dur in make_mv.STORYBOARD:
         in_d, out_d = make_mv.fade_durations(t_in, t_out)
         shots.append(dict(id=prefix.split("_")[0], name=prefix, anim=anim, t_in=t_in, t_out=t_out,
@@ -111,6 +111,7 @@ def main():
     ap.add_argument("--audio-cues", help="微電影：跟 make_mv.py 同一份 audio_cues.json（讀片頭／片尾戲秒數）")
     ap.add_argument("--prologue", type=float, default=None, help="微電影：片頭戲秒數（蓋過 audio_cues.json）")
     ap.add_argument("--epilogue", type=float, default=None, help="微電影：片尾戲秒數（蓋過 audio_cues.json）")
+    ap.add_argument("--cover-sec", type=float, default=0.0, help="make_mv.py 有接 --cover 時給同樣的秒數（預設 3）")
     args = ap.parse_args()
     if args.storyboard:
         import storyboard_md
@@ -124,12 +125,15 @@ def main():
     rv = video.parent / "review"
     rv.mkdir(exist_ok=True)
     stem = video.stem
-    shots = build_shots()
+    cover = args.cover_sec
+    shots = build_shots(cover)
     out, warns = {"video": str(video), "shots": len(shots)}, []
 
-    # ---- 0 結構：秒數對不對得上
+    # ---- 0 結構：秒數對不對得上（封面不算在分鏡裡）
     info = probe(video)
-    v_dur = float(info.get("format", {}).get("duration", 0))
+    v_dur = float(info.get("format", {}).get("duration", 0)) - cover
+    if cover:
+        out["cover_sec"] = cover
     a_streams = [s for s in info.get("streams", []) if s.get("codec_type") == "audio"]
     sb_total = round(sum(s["dur"] for s in shots), 2)
     out["pass0"] = dict(storyboard_total=sb_total, video_duration=round(v_dur, 2), has_audio=bool(a_streams))
@@ -185,10 +189,10 @@ def main():
     err = p.stderr
     blacks = [(float(a), float(b)) for a, b in re.findall(r"black_start:([\d.]+) black_end:([\d.]+)", err)]
     fz_s = [float(x) for x in re.findall(r"freeze_start: ([\d.]+)", err)]
-    fz_e = [float(x) for x in re.findall(r"freeze_end: ([\d.]+)", err)] + [v_dur] * (len(fz_s) - len(re.findall(r"freeze_end", err)))
+    fz_e = [float(x) for x in re.findall(r"freeze_end: ([\d.]+)", err)] + [v_dur + cover] * (len(fz_s) - len(re.findall(r"freeze_end", err)))
     freezes = list(zip(fz_s, fz_e))
-    bad_black = [(round(a, 2), round(b, 2)) for a, b in blacks if not in_transition(a, b, shots)]
-    bad_freeze = [(round(a, 2), round(b, 2)) for a, b in freezes if not in_transition(a, b, shots)]
+    bad_black = [(round(a, 2), round(b, 2)) for a, b in blacks if b > cover + EDGE and not in_transition(a, b, shots)]
+    bad_freeze = [(round(a, 2), round(b, 2)) for a, b in freezes if b > cover + EDGE and not in_transition(a, b, shots)]
     out["pass3"] = dict(black_all=len(blacks), black_unexpected=bad_black, freeze_all=len(freezes), freeze_unexpected=bad_freeze)
     for a, b in bad_black:
         warns.append(f"黑畫面：{a:.2f}-{b:.2f}s 不在轉場範圍內")
