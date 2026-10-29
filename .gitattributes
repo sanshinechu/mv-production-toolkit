@@ -1,2 +1,10 @@
+# 文字檔的工作樹一律 LF（2026-10-29）。這份工作樹由五台機器共用（靠 Google Drive 同步），
+# 但 autocrlf 是各機各自設的（這台 repo 本地設了 true）。哪天 git 真的改寫這些檔、
+# 把 CRLF 寫進工作樹，Drive 就會把 CRLF 同步給其他 autocrlf=false 的機器，
+# 那邊會看到「整份檔案都變了」的真差異。鎖成 LF 就不管各機怎麼設都一致。
+#   text=auto 不能省成 text：repo 裡的 PNG 位元本來就含 CR，寫成 text 會被當文字檔改壞。
+* text=auto eol=lf
+
 # shell 腳本一律 LF：core.autocrlf=true 的機器 checkout 成 CRLF 時 bash 會壞（2026-10-09）
+# （上面那行已涵蓋，保留這行當紀錄）
 *.sh text eol=lf
