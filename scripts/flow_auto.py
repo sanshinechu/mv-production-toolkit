@@ -351,7 +351,11 @@ def cmd_download(pw, a):
     if dup:
         log(f"  同一鏡有多支，只抓最新的：{dup}")
     if unknown:
-        log(f"  [注意] 這些影片格對不到鏡號，沒下載（到 Flow 裡 ⋮ → 重新命名成 cutNN 再跑一次）：{unknown}")
+        # 網頁上自己生的格子，名稱常是整段提示詞（含換行），只印開頭認得出是哪格就好
+        log(f"  [注意] 這 {len(unknown)} 格影片對不到鏡號，沒下載（到 Flow 裡 ⋮ → 重新命名成 cutNN 再跑一次）：")
+        for n in unknown:
+            short = " ".join(n.split())
+            log(f"    - {short[:40]}{'…' if len(short) > 40 else ''}")
 
 
 def download_1080p(page, tile, dest):
