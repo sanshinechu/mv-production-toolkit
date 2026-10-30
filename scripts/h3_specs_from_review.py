@@ -12,7 +12,7 @@ r"""把三方審核定案的「H3 分鏡」拆成一鏡一個 cutNN.json，檢�
 - 「H3 分鏡」階段必須已定案（approved）
 - 每個 ### cutNN 後面的 ```json 區塊都是合法 JSON
 - 欄位規則（照 15_ai共筆工作流/flows/specs/H3分鏡.md）：size 1344×768、duration ≤ 12、draft true、
-  upscale 只收 flashvsr（rtx 在 A100 上會 code -14 失敗，直接退回）、music N/A、沒有 audio／dialogue、style 全片逐字相同
+  upscale 收 flashvsr 或 lanczos（rtx 在 A100 上會 code -14 失敗，直接退回）、music N/A、沒有 audio／dialogue、style 全片逐字相同
 - 對分鏡表：cut 編號一致、duration = 分鏡秒數 + 0.5
 - H3 官方六段格式 lint（colab_mv/tools/h3_shot.py 的 build_prompt＋lint）0 錯誤
 """
@@ -32,6 +32,10 @@ from collect_videos import colab_dir  # noqa: E402
 
 RECORDS = ROOT.parents[1] / "工作筆記本" / "AI共修紀錄"   # <雲端硬碟>/Ai Code/01_MV製作 → <雲端硬碟>/工作筆記本（不寫死碟號）
 STAGE = "H3 分鏡"
+# A100 上能跑的放大方式（rtx 會 NvVFX_Load failed code -14）。
+# flashvsr＝AI 放大、會多畫細節；lanczos＝不改畫面但較糊，對嘴／特寫鏡要保真時選。
+# 老師在「給老師看的清單」那一步逐鏡選，見 docs/影片分流策略.md 🅰 第 4、7 步。
+UPSCALE_OK = ("flashvsr", "lanczos")
 BLOCK = re.compile(r"^#{2,4}\s*(cut\d+)\b[^\n]*\n+```json\s*\n(.*?)\n```", re.M | re.S)
 
 
@@ -94,9 +98,11 @@ def main():
         if j.get("draft") is not True:
             e.append("draft 要是 true")
         if j.get("upscale") == "rtx":
-            e.append("upscale 不能用 rtx：A100 上 RTX VSR 會 NvVFX_Load failed (code -14) 整鏡失敗，改用 \"flashvsr\"")
-        elif j.get("upscale") != "flashvsr":
-            e.append(f"upscale 是 {j.get('upscale')!r}，要 \"flashvsr\"")
+            e.append("upscale 不能用 rtx：A100 上 RTX VSR 會 NvVFX_Load failed (code -14) 整鏡失敗，"
+                     "改用 \"flashvsr\" 或 \"lanczos\"")
+        elif j.get("upscale") not in UPSCALE_OK:
+            e.append(f"upscale 是 {j.get('upscale')!r}，要 \"flashvsr\"（AI 放大，會多畫細節）"
+                     "或 \"lanczos\"（不改畫面但較糊，對嘴／特寫鏡要保真時用）")
         if j.get("music") != "N/A":
             e.append("music 要是 \"N/A\"")
         for bad in ("audio", "dialogue"):
