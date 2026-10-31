@@ -266,6 +266,14 @@ ExactAudioLock 暫時不需要；要比較才回頭測。
 唱哪幾鏡由初稿提議、老師清單定案；唱歌鏡預設 `flashvsr`。流程正本在 `影片分流策略.md` 🅰，這裡不抄。
 仍只有 1 種臉（黏土風、正面中近景）實測過，**臉部特寫未測**。
 
+**10-31 晚端到端實測 2 支**（`D:\MV\半張車票\_歷程\sing_e2e\`）：用正式工具走完 拆檔 → `h3_guard` → `collect_videos` → `make_mv` 整支 56 鏡。
+- 拆檔算出的歌曲起點 cut25＝66.90、cut27＝73.70，跟歌詞 SRT 一字不差。
+- Colab 上 demucs 第一版用 venv 失敗（Colab 的 Python 沒有 ensurepip），改成 `pip --target` 獨立資料夾後成功（安裝＋分離 222 秒）。
+- **成片對齊**：cut25、cut27 在成片裡的畫面誤差 0 格、聲音誤差 +5 ms → 嘴型與原曲時間對得上；兩鏡都沒被加速。
+- cut25（阿福中近景）✅ 乾淨，唱的時候張嘴、結尾閉嘴微笑。
+- cut27（小雯，首幀是從中近景**裁切放大**做的特寫）❌ 約 1 秒起兩個構圖疊影。推測是首幀與場景描述對不上，不是唱歌本身的問題（**未驗證**）。→ 中近景 2/2、特寫 0/1。
+- 守護用 nohup 背景跑時放不掉 GPU（要在核心裡叫 `runtime.unassign()`），這次手動補放。
+
 來源（2026-10-31 搜尋）：[RunningHub 費用整理（gengrades）](https://gengrades.com/runninghub)、[RunningHub API 費率（aifindertools 引述）](https://aifindertools.com/runninghub/)、
 [T8 audio 節點](https://github.com/T8mars/comfyui-minimax-h3-audio-T8)、[ExactAudioLock](https://github.com/badgids/ComfyUI-H3-ExactAudioLock)、[H3 RefMods Lab](https://github.com/entert-ai/ComfyUI-H3-RefMods-Lab)
 
