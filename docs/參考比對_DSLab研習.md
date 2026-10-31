@@ -196,6 +196,36 @@ Colab A100 的記憶體條件較寬裕，但頁面沒提 Colab，能否裝好社
 **候選落點**：先在本文件記錄可用工作流、節點、成本與執行穩定性；
 通過測試後，再評估是否於 `docs/影片分流策略.md` 增加環境選項。
 
+### 1-7 優先順序第 5 項的試驗環境：Colab A100 vs RunningHub（2026-10-31 整理，未實測）
+
+**先講一個之前沒寫進來的前提**：🅰 在 Colab 上**本來就是跑 ComfyUI**（`setup_comfy.py --pack h3`，`影片生成工作流.html` 記「MiniMax H3（ComfyUI）」）。
+課程說進階工作流「不相容 ComfyCloud」，原因是要裝**社群節點**；Colab 上的 ComfyUI 是我們自己裝的，可以 `git clone` 任何節點進去，
+所以「ComfyCloud 不行」**不等於** Colab 不行。
+
+**課程提到的節點在 GitHub 上找得到候選**（只看了搜尋結果，**還沒打開 README 核對**）：
+
+| 課程講法 | 候選 repo | 依據 |
+|---|---|---|
+| T8 的 AudioLock | `T8mars/comfyui-minimax-h3-audio-T8` | 名字對得上「T8」，**推測** |
+| （另一個同類） | `badgids/ComfyUI-H3-ExactAudioLock` | README 寫「把 H3 鎖在指定音軌」，Ref2VA 用 ComfyUI 原生的 Reference to Video 節點 |
+| REFVA 的 `retention_analysis` | `entert-ai/ComfyUI-H3-RefMods-Lab` | 會把主體定義與 retention analysis 組進 H3 提示詞 |
+
+| | Colab A100（🅰 現有環境） | RunningHub |
+|---|---|---|
+| 帳號 | 現成（sunnyboychu 的 Pro） | **要新開帳號＋儲值**，訂閱幣 31 天過期、不退款（第三方整理） |
+| 費用 | 約 6.77 運算單元／小時（🅰 實測） | 第三方查到每秒計費，24 GB 約 US$0.7／時、48 GB 約 US$0.9／時；各來源數字不一致，**要到官網確認** |
+| 裝節點 | 每次新執行階段都要重裝（`/content` 會清空），要把節點加進 `setup_comfy.py` 的 pack | 課程工作流**可能**直接有範本，裝設定最省事 |
+| 接我們的工具 | `h3_guard.py`、輸出直接寫 Drive、`collect_videos.py` 都能沿用 | 都接不上，要手動上傳下載 |
+| 風險 | 節點跟我們的 ComfyUI 版本不合；執行階段被斷 | 平台陌生、要老師操作網頁與付款 |
+
+**建議**：先在 Colab A100 試，因為不用開新帳號付錢、成品能直接進現有流程。
+第一步只做「裝得起來嗎」：開一個執行階段，`git clone` 上面的 AudioLock 節點、載入課程工作流，看有沒有紅色節點，**不生成**。
+裝不起來（或要的模型 Colab 載不動）才考慮 RunningHub。
+試驗本身照第 5 項：拿 SUNO 一句中文歌聲（約 4～5 秒）＋一張角色圖，看嘴型有沒有跟拍、輸出音軌是不是原曲沒被改。
+
+來源（2026-10-31 搜尋）：[RunningHub 費用整理（gengrades）](https://gengrades.com/runninghub)、[RunningHub API 費率（aifindertools 引述）](https://aifindertools.com/runninghub/)、
+[T8 audio 節點](https://github.com/T8mars/comfyui-minimax-h3-audio-T8)、[ExactAudioLock](https://github.com/badgids/ComfyUI-H3-ExactAudioLock)、[H3 RefMods Lab](https://github.com/entert-ai/ComfyUI-H3-RefMods-Lab)
+
 ---
 
 ## 2. 流程層：短劇那篇的關卡
@@ -419,7 +449,7 @@ A3 的「一分鐘只放一個轉折」適用於其一分鐘短劇練習，
 | 2 | **在 mv-13 連戲三錨點後補「資產狀態表」；在 🅰 第 3、4 步之間加首幀組圖審查，沿用 mv-12 的 ffmpeg tile 拼圖** | 缺口已確認、工具不用新寫，成本低；可在影片生成前抓跨鏡狀態錯。動態錯誤仍靠 `review_mv.py` 與交件前抽幀 | ✅ 兩半都做完（另補了 mv-11 的接手動作） |
 | 3 | **查證 🅱 Omni 嘴型問題的提示詞與傳遞紀錄**，並整理 10-30 自動化、模型與秒數現況供老師決定是否更新策略文件 | 直接關聯已發生的重生問題，先查既有規則是否漏帶，比先判定模型無解更可執行 | ✅ **定案（10-30 晚）**：規格層面確實缺這條（已補 Flow spec 與 H3 spec）；但那一次測試**有帶**閉嘴指示，Omni 2 次都照樣動嘴 → 是模型擋不住。詳見〈落地進度〉第 5 項 |
 | 4 | **按適用範圍補提示詞與改圖規則**：連續動作接點、動作方向、事件時序放 H3／mv-06；最小改圖與狀態延伸放 mv-04／05 | 先查現有內容避免重複；不把短劇的連續鏡規則套到所有 MV，也不把改圖規則塞進影片 JSON | ✅ 做完（見〈落地進度〉第 7 項）。接點明寫只對連續動作鏡、改圖規則放 mv-04／05 沒塞進影片 JSON |
-| 5 | **讀 Lesson 04 與 H3 進階 A2 的操作內容，建立短句 REFVA／AudioLock 試驗**；先確認環境與音軌保真，再評估接入工具 | 潛在新能力價值高，但需要工作流、社群節點及中文歌聲實測，前置成本高於文件修正 | ⬜ 未開始（要先定環境：A100 或 RunningHub，ComfyCloud 不行） |
+| 5 | **讀 Lesson 04 與 H3 進階 A2 的操作內容，建立短句 REFVA／AudioLock 試驗**；先確認環境與音軌保真，再評估接入工具 | 潛在新能力價值高，但需要工作流、社群節點及中文歌聲實測，前置成本高於文件修正 | ⬜ 未開始（10-31 已整理環境比較，建議先 Colab A100、只驗能不能裝，見 1-7；待老師決定） |
 | 6 | **視第 5 項需要評估 RunningHub**；二採省時與 LoRA 另以小樣本比較 | RunningHub 可作環境候選，但相容性、費用、操作負擔與既有工具串接未驗證；不能保證省時省點 | ⬜ 未開始 |
 | 7 | **下一次選題或口白撰寫時試用三方向、故事引擎與去 AI 味檢查** | 在實際選題時比較最有意義；保留老師的感動取向，不加沒有依據的轉折數上限 | ⬜ 等下一支 MV |
 
