@@ -5,7 +5,9 @@ r"""🅱 Google Flow 網頁自動化（Playwright 操作本機 Chrome；分流�
   python scripts/flow_auto.py login                       # 開專用 Chrome，老師手動登入 Gmail 帳號一次（看到「新增專案」自動結束）
   python scripts/flow_auto.py inspect                     # 只讀介面、不按生成：存 aria 結構＋截圖到 _flow_inspect/
   python scripts/flow_auto.py run jobs.json --out <資料夾>          # 預演：上傳、設定、貼提示詞，但不按送出
-  python scripts/flow_auto.py run jobs.json --out <資料夾> --go     # 真的送出、等生成、改名成 cutNN、下載 1080p
+  python scripts/flow_auto.py run jobs.json --out <資料夾> --project <預演印出的網址> --go
+                                                                    # 真的送出、等生成、改名成 cutNN、下載 1080p；
+                                                                    # 沿用預演的專案，不帶 --project 會多留一個空專案
   python scripts/flow_auto.py download <專案網址> --out <資料夾>    # 補抓：資料夾裡還沒有的鏡才下載，已有的跳過
 
 jobs.json：[{"cut": "cut04", "first": "<專案>/分鏡圖/cut04_first.png", "prompt": "...", "seconds": 4}, ...]
@@ -27,6 +29,7 @@ import time
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")   # sys.exit 的中文訊息走 stderr，沒設在 Git Bash 會變亂碼（2026-10-31）
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "flow_auto" / "chrome_profile"
 FLOW = "https://flow.google.com/"
@@ -423,6 +426,10 @@ def cmd_run(pw, a):
     ctx, page = open_browser(pw)
     page.goto(a.project or FLOW)
     page.wait_for_timeout(5000)
+    if a.project and page.get_by_text("找不到專案").count():
+        # 專案已被刪掉時 Flow 只顯示這行字，不處理的話要等 30 秒才在設定按鈕那裡逾時，看不出原因
+        ctx.close()
+        sys.exit(f"Flow 顯示「找不到專案」：{a.project}\n  可能已被刪掉；拿掉 --project 會開新專案")
     if not a.project:
         page.get_by_text("新增專案").first.click()
         page.wait_for_timeout(6000)
@@ -476,6 +483,10 @@ def cmd_run(pw, a):
         if status != "ok":
             log(f"  {cut} {status}：{msg}——停下，不自動重試")
             break
+    if not a.go and not a.project:
+        # 正式送出不帶 --project 會再開一個新專案，預演這個就變成留在 Flow 上的空專案（2026-10-31 實際發生）
+        log("正式送出請沿用這個專案，免得多留一個空專案：")
+        log(f'  python scripts/flow_auto.py run "{a.jobs}" --out "{a.out}" --project {page.url} --go')
     ctx.close()
 
 
