@@ -223,6 +223,22 @@ Colab A100 的記憶體條件較寬裕，但頁面沒提 Colab，能否裝好社
 裝不起來（或要的模型 Colab 載不動）才考慮 RunningHub。
 試驗本身照第 5 項：拿 SUNO 一句中文歌聲（約 4～5 秒）＋一張角色圖，看嘴型有沒有跟拍、輸出音軌是不是原曲沒被改。
 
+#### ✅ 10-31 下午實測：ExactAudioLock 在 Colab A100 裝得起來（只裝、沒生成）
+
+老師允許執行外部節點後，在 A100-SXM4-80GB 上跑（`setup_comfy.py --pack h3` 552 秒，之後試裝約 2 分鐘，完畢 `runtime.unassign()`）：
+
+- **選它不選 T8 的理由**（讀過三個 README）：`badgids/ComfyUI-H3-ExactAudioLock`（MIT）明寫把指定音軌鎖進 H3 的音訊 latent、
+  「整條音軌不參與去噪、只讓畫面去噪」，並點名適用唱歌與 MV；T8 那包功能雜，自己寫「不保證逐字時序」；RefMods 是參考、不是鎖音軌。
+- 裝法：clone 到 `/content/extra_nodes/`（**刻意不放 Drive 的 `custom_nodes`**，免得影響正式生成）＋ `pip install av>=14.2.0`，symlink 進 ComfyUI。
+  版本 `5591969`（2026-09-27）。ComfyUI 0.37.0、torch 2.14.0+cu130。
+- **載入 11 個節點，log 無匯入錯誤**（`MiniMaxH3ExactAudioLock`、`MiniMaxH3TimedAudio`、`H3ExactAudioLockAudioReviewGate` 等）。
+- **10 個 standalone 範例工作流全部不缺節點**，含 `02_i2v`（首幀＋音軌）、`04_ref2v`（參考圖＋音軌）。
+  缺節點的 8 個是 Qwen3-TTS 與 Context Loop 範例，要另裝別的節點包，我們用不到。
+- ⚠️ **模型檔名對不上**：`02_i2v` 指定 `minimax_h3_fl2va_pruned_int8_convrot` 與 `qwen3vl_32b_minimax_h3_nvfp4_awq`，我們沒有；
+  我們的 pack 是 `ref2va` ＋ `heretic` 文字編碼器（山獅霸設定：Ref2VA 一版做首幀／尾幀／參考圖）。正式試驗時把 Loader 換成我們的檔，**換了能不能跑還沒驗**。
+- **還沒驗的（下一步）**：拿 SUNO 一句中文歌聲（4～5 秒）＋一張角色首幀實際生成 1 支，看嘴型有沒有跟拍、輸出音軌是不是原曲。
+  要接進正式流程還得：把節點加進 `setup_comfy.py`（或 Drive 的 `custom_nodes`）、寫對應的 `h3_shot.py` 分支。
+
 來源（2026-10-31 搜尋）：[RunningHub 費用整理（gengrades）](https://gengrades.com/runninghub)、[RunningHub API 費率（aifindertools 引述）](https://aifindertools.com/runninghub/)、
 [T8 audio 節點](https://github.com/T8mars/comfyui-minimax-h3-audio-T8)、[ExactAudioLock](https://github.com/badgids/ComfyUI-H3-ExactAudioLock)、[H3 RefMods Lab](https://github.com/entert-ai/ComfyUI-H3-RefMods-Lab)
 
@@ -449,7 +465,7 @@ A3 的「一分鐘只放一個轉折」適用於其一分鐘短劇練習，
 | 2 | **在 mv-13 連戲三錨點後補「資產狀態表」；在 🅰 第 3、4 步之間加首幀組圖審查，沿用 mv-12 的 ffmpeg tile 拼圖** | 缺口已確認、工具不用新寫，成本低；可在影片生成前抓跨鏡狀態錯。動態錯誤仍靠 `review_mv.py` 與交件前抽幀 | ✅ 兩半都做完（另補了 mv-11 的接手動作） |
 | 3 | **查證 🅱 Omni 嘴型問題的提示詞與傳遞紀錄**，並整理 10-30 自動化、模型與秒數現況供老師決定是否更新策略文件 | 直接關聯已發生的重生問題，先查既有規則是否漏帶，比先判定模型無解更可執行 | ✅ **定案（10-30 晚）**：規格層面確實缺這條（已補 Flow spec 與 H3 spec）；但那一次測試**有帶**閉嘴指示，Omni 2 次都照樣動嘴 → 是模型擋不住。詳見〈落地進度〉第 5 項 |
 | 4 | **按適用範圍補提示詞與改圖規則**：連續動作接點、動作方向、事件時序放 H3／mv-06；最小改圖與狀態延伸放 mv-04／05 | 先查現有內容避免重複；不把短劇的連續鏡規則套到所有 MV，也不把改圖規則塞進影片 JSON | ✅ 做完（見〈落地進度〉第 7 項）。接點明寫只對連續動作鏡、改圖規則放 mv-04／05 沒塞進影片 JSON |
-| 5 | **讀 Lesson 04 與 H3 進階 A2 的操作內容，建立短句 REFVA／AudioLock 試驗**；先確認環境與音軌保真，再評估接入工具 | 潛在新能力價值高，但需要工作流、社群節點及中文歌聲實測，前置成本高於文件修正 | ⬜ 未開始（10-31 已整理環境比較，建議先 Colab A100、只驗能不能裝，見 1-7；待老師決定） |
+| 5 | **讀 Lesson 04 與 H3 進階 A2 的操作內容，建立短句 REFVA／AudioLock 試驗**；先確認環境與音軌保真，再評估接入工具 | 潛在新能力價值高，但需要工作流、社群節點及中文歌聲實測，前置成本高於文件修正 | 🔶 **環境已驗**（10-31）：ExactAudioLock 在 Colab A100 裝得起來、基本範例不缺節點；**還沒實際生成**，見 1-7 |
 | 6 | **視第 5 項需要評估 RunningHub**；二採省時與 LoRA 另以小樣本比較 | RunningHub 可作環境候選，但相容性、費用、操作負擔與既有工具串接未驗證；不能保證省時省點 | ⬜ 未開始 |
 | 7 | **下一次選題或口白撰寫時試用三方向、故事引擎與去 AI 味檢查** | 在實際選題時比較最有意義；保留老師的感動取向，不加沒有依據的轉折數上限 | ⬜ 等下一支 MV |
 
