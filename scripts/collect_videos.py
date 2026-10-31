@@ -75,6 +75,12 @@ def collect(mv, sb, raw):
         n += 1
         print(f"  ← {num}：{src.relative_to(src_root.parent)} → videos-raw/{prefix}.mp4" + (f"（舊檔移到 _old/{stamp}）" if olds else ""))
     print(f"搬回 {n} 鏡")
+    # 唱歌鏡清單留給 make_mv.py：唱歌鏡一加速嘴就對不上歌，它要知道哪幾鏡不能 --fit（2026-10-31）
+    sings = sorted(p.stem.split("_")[0] for p in (colab_dir() / "inputs" / mv).glob("cut*.json")
+                   if (json.loads(p.read_text(encoding="utf-8")).get("audio") or {}).get("fixed"))
+    if sings:
+        (raw / "_sing_cuts.json").write_text(json.dumps({"cuts": sings, "updated": stamp}, ensure_ascii=False), encoding="utf-8")
+        print(f"唱歌鏡 {len(sings)} 鏡：{sings}（寫進 videos-raw/_sing_cuts.json，make_mv.py 不會加速它們）")
 
 
 def check(sb, raw):

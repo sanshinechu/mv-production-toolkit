@@ -18,7 +18,7 @@ def _cells(line):
     return [c.strip().strip("`*") for c in line.strip().strip("|").split("|")]
 
 
-def load(path):
+def _rows(path):
     lines = Path(path).read_text(encoding="utf-8-sig").splitlines()
     head = None
     rows = []
@@ -37,10 +37,38 @@ def load(path):
         rows.append(dict(zip(head, c)))
     if not rows:
         raise ValueError(f"{path} 找不到 mv-11 格式的分鏡表（要有 Cut／秒數／動畫／進/出轉場 欄）")
+    return rows
 
-    def col(r, key):
-        return next((v for k, v in r.items() if key in k.lower() or key in k), "")
 
+def col(r, key):
+    return next((v for k, v in r.items() if key in k.lower() or key in k), "")
+
+
+def _clock(s):
+    """'1:03.3' → 63.3；看不懂回 None。"""
+    m = re.fullmatch(r"\s*(?:(\d+):)?(\d+(?:\.\d+)?)\s*", s or "")
+    return int(m.group(1) or 0) * 60 + float(m.group(2)) if m else None
+
+
+def timeline(path):
+    """唱歌鏡用（2026-10-31）：回傳 {cutNN: {"start": 成片秒數, "dur": 秒數, "lyric": 歌詞欄, "clock": 時間欄起點或 None}}。
+    start 是**秒數欄依序累加**——make_mv.py 就是這樣一鏡接一鏡排的，所以這才是成片裡真正的位置；
+    時間欄只拿來對照（clock），兩者不合由呼叫端決定要不要警告。"""
+    out, t = {}, 0.0
+    for prefix, _a, _i, _o, dur in load(path):
+        out[prefix.split("_")[0]] = {"start": round(t, 3), "dur": dur}
+        t += dur
+    for r in _rows(path):
+        m = re.search(r"(\d+)", col(r, "cut"))
+        cut = f"cut{int(m.group(1)):02d}"
+        if cut in out:
+            out[cut]["lyric"] = col(r, "歌詞")
+            out[cut]["clock"] = _clock(re.split(r"[–—~-]", col(r, "時間"))[0]) if col(r, "時間") else None
+    return out
+
+
+def load(path):
+    rows = _rows(path)
     out = []
     for r in rows:
         raw = col(r, "cut")

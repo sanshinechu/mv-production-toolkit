@@ -23,6 +23,7 @@ make_mv.py — 純 ffmpeg 組裝 MV（《那些年，還在》12 cut 版）
 不用 -shortest（AGENTS.md 規定，會截斷音樂）：音樂先檢查夠長，再明確用 -t 裁到分鏡總長。
 """
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -532,6 +533,11 @@ def main():
     shots = Path(args.shots).resolve() if args.shots else None
     videos = Path(args.videos).resolve() if args.videos else None
     fit_cuts = {c.strip() for c in (args.fit or "").split(",") if c.strip()}
+    # 唱歌鏡（collect_videos.py 寫的清單，2026-10-31）：嘴對的是原曲那幾秒，加速就對不上，所以一律不 fit
+    sing_f = videos / "_sing_cuts.json" if videos else None
+    sing_cuts = set(json.loads(sing_f.read_text(encoding="utf-8"))["cuts"]) if sing_f and sing_f.exists() else set()
+    if sing_cuts & fit_cuts:
+        p.error(f"{sorted(sing_cuts & fit_cuts)} 是唱歌鏡，不能放進 --fit（加速後嘴就對不上歌）")
     music = Path(args.music).resolve()
     out_path = Path(args.out).resolve()   # 絕對路徑：concat 清單裡的相對路徑會以清單檔所在處為準
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -568,8 +574,11 @@ def main():
         vid = find_video(videos, prefix)
         if vid:
             print(f"  [{i+1:02d}/{len(STORYBOARD)}] {prefix} -> 影片 {vid.name} ({t_in}/{t_out}) {dur}s")
-            ok = make_video_clip(ffmpeg, vid, t_in, t_out, dur, clip,
-                                 fit=has_last_frame(shots, prefix, fit_cuts))
+            fit = has_last_frame(shots, prefix, fit_cuts)
+            if fit and prefix.split("_")[0] in sing_cuts:
+                print(f"      唱歌鏡：分鏡圖有 {prefix.split('_')[0]}_last.*，但唱歌鏡不加速，從頭裁到 {dur}s")
+                fit = False
+            ok = make_video_clip(ffmpeg, vid, t_in, t_out, dur, clip, fit=fit)
         else:
             img = find_image(shots, prefix) if shots else None
             if not img:
