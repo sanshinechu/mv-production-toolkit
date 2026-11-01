@@ -36,7 +36,7 @@ AI MV 製作工具箱：14 支 MV skill 的專案副本、三方共審接點、C
 
 ## 使用方式
 
-直接開啟 `index.html` 即可使用，不需要安裝套件，也不需要啟動伺服器。
+舊的 12 步導覽頁現在是 `index.html.backup`（改名成 .html 再開）；`index.html` 自 2026-10-18 起改成直接跳到工作筆記本的「三種影片工作流」總覽圖（2026-11-01 起只留那一份正本）。不需要安裝套件，也不需要啟動伺服器。
 
 網頁功能包含：
 
@@ -62,7 +62,7 @@ AI MV 製作工具箱：14 支 MV skill 的專案副本、三方共審接點、C
 
 ## 主要檔案
 
-- `index.html`：網頁主畫面
+- `index.html`：跳轉到工作筆記本的總覽圖；舊網頁主畫面在 `index.html.backup`
 - `styles.css`：網頁樣式
 - `script.js`：步驟資料、切換與複製功能
 - `firebase-config.js`：前端 Firebase SDK 設定
