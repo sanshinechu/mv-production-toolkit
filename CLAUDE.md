@@ -65,7 +65,7 @@
 
 - 影片素材收件與檢查：`scripts/collect_videos.py`；三支腳本共用 `scripts/storyboard_md.py` 讀 mv-11 分鏡表。
 
-> 🔀 **影片分流**：影片提示詞三方共審「無意見」後，整支 MV 選 Colab H3（三家皆可代跑）、Google Flow（`flow_auto.py` 自動化，三家皆可代跑；每台老師先 login 一次）、Magnific（三家皆可代跑，扣 Magnific 點數）或 Kling.ai（三家皆可代跑，扣 Kling 官方點數），規則唯一正本在 [docs/影片分流策略.md](docs/影片分流策略.md)，這裡不抄內容。
+> 🔀 **影片分流**：影片提示詞三方共審「無意見」後，整支 MV 選 Colab H3（三家皆可代跑）、Google Flow（AI 用 `flow_auto.py` 幫老師上傳首幀與提示詞、送出生成，再下載 1080p 成品回來；三家皆可代跑，每台老師先 login 一次）、Magnific（三家皆可代跑，扣 Magnific 點數）或 Kling.ai（三家皆可代跑，扣 Kling 官方點數），規則唯一正本在 [docs/影片分流策略.md](docs/影片分流策略.md)，這裡不抄內容。
 
 ---
 
