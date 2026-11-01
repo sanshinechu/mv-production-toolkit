@@ -12,3 +12,8 @@
 | `Wan_本地影片生成串接.md` | 家裡筆電 Wan 2.1 Q3 本機圖生影片 | 影片分流策略 🅰 Colab H3（A100） | — |
 | `CLAUDE_MV製作12步流程_v2.0.md` | 原本塞在 `CLAUDE.md` 的 12 步流程（v2.0，2026-05） | 專案 README「現行流程」＋影片分流策略＋各支 MV skill（2026-11-01 搬來） | Step 11 的 metadata.md 7 區塊規格（`MV專案範本/metadata.md` 仍照它） |
 | `mv-production-packaging_舊版/` | 舊的「MV 製作完整工作流總控」skill（11 步：HANDOFF.md、media-generation 生影片、FFmpeg concat、VLC） | `.claude/skills/mv-production-packaging/` 短版（只管交件收尾）＋專案 README「現行流程」（2026-11-01 搬來） | 封面截圖、HANDOFF 欄位的舊寫法 |
+| `SKILLS_MAPPING_12步對照.md` | 原根目錄 `SKILLS_MAPPING.md`：12 步流程對應 skill 的表（2026-08） | 專案 README「現行流程」＋ MV_WORKFLOW_GUIDE 總覽表（2026-11-01 搬來，以下四項同） | — |
+| `CODEX_GUIDE_主角生圖交接_20260523.md` | 原根目錄 `CODEX_GUIDE.md`：5/23 一次性交接 Codex 生 Split Screen 主角圖 | mv-02（另出單張半身參考圖）＋ mv-12 | — |
+| `FIREBASE_FIX_GUIDE_舊網頁.md` | 原根目錄 `FIREBASE_FIX_GUIDE.md`：舊 12 步網頁存檔失敗的 Realtime Database 規則修法 | 舊網頁已不用（`index.html` 改跳總覽圖，舊頁在根目錄 `index.html.backup`） | 舊網頁 Firebase 規則 |
+| `filelist_ffmpeg串接清單_202607.txt` | 原根目錄 `filelist.txt`：2026-07 手寫 FFmpeg concat 清單，路徑寫死 `I:\` | `scripts/make_mv.py --videos --storyboard` | — |
+| `ai-media-generator_阿亮老師舊版/` | 原根目錄 `ai-media-generator/`：阿亮老師的 FAL 生圖生影片 skill（FLUX、Kling V2.1、Hailuo、Seedance 舊價格），沒註冊進任何工具 | 影片分流策略四條路線；生圖走 mv-12 | 阿亮老師新講義的比對見 `../參考比對_阿亮AI電影感短片.md` |
