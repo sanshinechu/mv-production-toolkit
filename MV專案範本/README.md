@@ -15,8 +15,8 @@
 | 5 | 場景提示詞、分鏡圖 | mv-03、mv-04（共修）、mv-12 生圖 | `shots/cutNN_*.png` | [ ] |
 | 6 | 影片提示詞 | mv-06（**審核**，三家無意見） | 定案稿在共修紀錄 → 記到 `共審紀錄.md` | [ ] |
 | 7 | 選路線 | 老師決定整支 MV 走 🅰 Colab H3、🅱 Google Flow、🅲 Magnific 或 🅳 Kling.ai | 寫在 `brief.md` 最後一行 | [ ] |
-| 8🅰 | H3 分鏡審核 → 拆檔 → 清單 → 生成 → 放大 → 搬回 | `--flow mv-h3`、`h3_specs_from_review.py`、`h3_guard.py`（守護會自己叫 h3_batch.py）、`collect_videos.py` | `videos-raw/cutNN_*.mp4` | [ ] |
-| 8🅱 | Flow 提示詞審核 → AI 用 `flow_auto.py` 上傳首幀與提示詞、送出生成、下載 → 放回 | `--flow mv-flow`、`flow_auto.py run`、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
+| 8🅰 | H3 分鏡審核 → 拆檔 → **首幀組圖審查**（看得到圖的一方做，沒過不送生成）→ 清單（老師逐鏡選放大方式）→ 老師說「直接生影片」→ **先做最難一鏡** → 整批生成 → 放大 → 搬回 | `--flow mv-h3`、`h3_specs_from_review.py`、`h3_guard.py`（守護會自己叫 h3_batch.py）、`collect_videos.py` | `videos-raw/cutNN_*.mp4` | [ ] |
+| 8🅱 | Flow 提示詞審核 → AI 用 `flow_auto.py` **預演**（上傳首幀與提示詞，不送出）→ 老師說「直接生影片」→ 加 `--go` 送出、一次一鏡、下載 → 放回 | `--flow mv-flow`、`flow_auto.py run`（預演）→ `run … --project <網址> --go`、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 8🅲 | Magnific：選模型＋`simulate_cost` 試算 → 清單（含點數）→ 最難一鏡 → 整批 → 下載改名放回 | Magnific MCP（`video_generate`，1080p、`withSoundEffects: false`）、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 8🅳 | Kling.ai：查點數 → （要鎖角色才）建 Element → 上傳首幀 → 清單 → 最難一鏡量點數 → 整批 → 下載改名放回 | Kling MCP（`image_to_video`／`omni_ref_video`，**要明寫 1080p**）、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 9 | 組裝 1080p | `make_mv.py --videos --storyboard --size 1920x1080` | `{{MV名}}_完整MV.mp4` | [ ] |
@@ -42,6 +42,6 @@ python scripts/review_mv.py "outputs/{{MV名}}/{{MV名}}_完整MV.mp4" --music "
 | `共審紀錄.md` | 各階段共修資料夾名（`--from` 要用）與定案日期 |
 | `shots/` | 分鏡圖、角色參考圖（H3 首幀會複製成 `cutNN_first.png` 放進 colab_mv） |
 | `music/` | SUNO 原曲（別放進 git） |
-| `videos-raw/` | 兩條路線的影片成品 `cutNN_短名.mp4`，1920×1080、24 fps；舊版自動移到 `_old/` |
+| `videos-raw/` | 四條路線的影片成品 `cutNN_短名.mp4`，1920×1080、24 fps；🅰 用 `collect_videos.py` 搬回時舊版自動移到 `_old/<時間>/`，🅱／🅲／🅳 直接放檔的要先自己把舊檔移到 `_old/` |
 | `review/` | review_mv.py 的抽幀圖與數字 |
 | `metadata.md` | YouTube 7 區塊 |

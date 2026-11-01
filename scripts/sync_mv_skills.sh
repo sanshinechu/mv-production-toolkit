@@ -41,7 +41,11 @@ for s in "${SKILLS[@]}"; do
         mkdir -p "$stage"
         cp -r "$SRC/$s/." "$stage/"
         if [[ $target == agents ]]; then
-            find "$stage" -name '*.md' -print0 | xargs -0 sed -i 's/Claude/Codex/g'
+            # 「Claude／Codex／Antigravity 皆可」這種三家並列的寫法要原樣保留，不然會變成「Codex／Codex」（2026-11-01 發現）
+            find "$stage" -name '*.md' -print0 | xargs -0 sed -i \
+                -e 's/Claude／Codex/@@KEEP_CLAUDE_CODEX@@/g' \
+                -e 's/Claude/Codex/g' \
+                -e 's/@@KEEP_CLAUDE_CODEX@@/Claude／Codex/g'
         fi
         # 比對（忽略行尾差異，Drive 上的副本可能是 CRLF）
         if [[ -d "$dest" ]] && diff -rq --strip-trailing-cr "$stage" "$dest" >/dev/null 2>&1; then
