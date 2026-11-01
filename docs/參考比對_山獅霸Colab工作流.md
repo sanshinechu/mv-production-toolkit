@@ -112,7 +112,7 @@ https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE
 2. **唱歌清單不能清空**：collect_videos.py 只有 sings 非空才寫 _sing_cuts.json；全部取消唱歌鏡後舊清單仍在。應每次更新完整清單（包括空集合），並確認與本輪素材一致。
 3. make_mv.py 已擋唱歌鏡放入 --fit，也會覆蓋由 last-frame 觸發的加速，方向正確；正式重剪時仍要連同前述快取一致性驗證。
 4. 背景 nohup 的守護無法直接 runtime.unassign()，Claude 已記錄並手動釋放。下一輪按既有文件在筆記本前景啟動，不把程序結束當成 GPU 已釋放。
-5. demucs 的 pip --target 目前多抓相依套件，約 5 GB；瘦身列後續，優先先處理內容正確性。
+5. demucs 的 pip --target 目前多抓相依套件，約 5 GB（**11-01 已改成一條 pip、只裝 CPU 版 torch，見分流策略 🅰**）；瘦身列後續，優先先處理內容正確性。
 
 ### 下次接續順序
 
