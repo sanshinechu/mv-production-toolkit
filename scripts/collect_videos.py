@@ -76,11 +76,21 @@ def collect(mv, sb, raw):
         print(f"  ← {num}：{src.relative_to(src_root.parent)} → videos-raw/{prefix}.mp4" + (f"（舊檔移到 _old/{stamp}）" if olds else ""))
     print(f"搬回 {n} 鏡")
     # 唱歌鏡清單留給 make_mv.py：唱歌鏡一加速嘴就對不上歌，它要知道哪幾鏡不能 --fit（2026-10-31）
-    sings = sorted(p.stem.split("_")[0] for p in (colab_dir() / "inputs" / mv).glob("cut*.json")
+    specs = list((colab_dir() / "inputs" / mv).glob("cut*.json"))
+    sing_f = raw / "_sing_cuts.json"
+    if not specs:   # inputs 被清掉時看不出哪幾鏡唱歌，清單照舊（清空的話唱歌鏡會被加速、嘴對不上）
+        if sing_f.exists():
+            print(f"⚠️ Colab 端沒有 inputs/{mv}/cut*.json，唱歌鏡清單沿用舊的 {sing_f.name}")
+        return
+    sings = sorted(p.stem.split("_")[0] for p in specs
                    if (json.loads(p.read_text(encoding="utf-8")).get("audio") or {}).get("fixed"))
     if sings:
-        (raw / "_sing_cuts.json").write_text(json.dumps({"cuts": sings, "updated": stamp}, ensure_ascii=False), encoding="utf-8")
+        sing_f.write_text(json.dumps({"cuts": sings, "updated": stamp}, ensure_ascii=False), encoding="utf-8")
         print(f"唱歌鏡 {len(sings)} 鏡：{sings}（寫進 videos-raw/_sing_cuts.json，make_mv.py 不會加速它們）")
+    elif sing_f.exists():   # 唱歌鏡全取消了：舊清單要清掉，不然 make_mv.py 還是不准那幾鏡加速（2026-11-01）
+        old = json.loads(sing_f.read_text(encoding="utf-8")).get("cuts", [])
+        sing_f.write_text(json.dumps({"cuts": [], "updated": stamp}, ensure_ascii=False), encoding="utf-8")
+        print(f"唱歌鏡已全部取消（原本 {old}），_sing_cuts.json 清空")
 
 
 def check(sb, raw):
