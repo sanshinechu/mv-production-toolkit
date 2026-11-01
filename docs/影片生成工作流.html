@@ -60,7 +60,7 @@ th{color:var(--sub);font-weight:600}
   <div class="step"><span class="who t">老師</span><b>SUNO 生歌</b><span>依實際長度<br>重算段落秒數</span></div><div class="arrow">→</div>
   <div class="step"><span class="who m">三家皆可</span><b>角色定妝</b><span>mv-02＋鎖臉，單張半身參考圖<br>Codex／Antigravity 用<b style="display:inline;font-size:15px;margin:0">內建免費生圖</b></span></div><div class="arrow">→</div>
   <div class="step"><span class="who m">三家皆可</span><b>時間軸分鏡</b><span>mv-11 對拍切點<br>標「最難一鏡」<br>先定鏡號再生圖</span></div><div class="arrow">→</div>
-  <div class="step"><span class="who m">三家皆可</span><b>分鏡圖</b><span>mv-03／04／05／12 照分鏡表每鏡一張首幀<br>Codex／Antigravity 用<b style="display:inline;font-size:15px;margin:0">內建免費生圖</b></span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>分鏡圖</b><span>mv-03 寫提示詞、mv-12 照分鏡表每鏡一張首幀（mv-04 選用試機位、mv-05 放大）<br>Codex／Antigravity 用<b style="display:inline;font-size:15px;margin:0">內建免費生圖</b></span></div><div class="arrow">→</div>
   <div class="step"><span class="who m">三家皆可</span><b>影片提示詞</b><span>mv-06</span></div>
 </div>
 <div class="gate">🚦 影片提示詞共審「沒有意見」→ 老師選路線 → 列清單（秒數、首幀、點數）→ <b>老師說「直接生影片」才生</b> → 一律<b>先做最難一鏡</b>，沒問題再整批</div>
@@ -125,8 +125,8 @@ th{color:var(--sub);font-weight:600}
 <div class="stage"><span class="no">階段 3</span><span class="t">組裝、檢查、上架</span><span class="s">四條路共用同一套，全部三家 AI 都能跑</span></div>
 <div class="row">
   <div class="step"><span class="who m">三家皆可</span><b>收件檢查</b><span>collect_videos --check<br>缺鏡、秒數、1080p、24 fps</span></div><div class="arrow">→</div>
-  <div class="step"><span class="who m">三家皆可</span><b>組裝</b><span>make_mv --videos<br>裁秒數、丟原聲、再擋一次規格</span></div><div class="arrow">→</div>
-  <div class="step"><span class="who m">三家皆可</span><b>聲音與字幕</b><span>mv-14 口白閃避混音<br>對白＋歌詞雙層字幕</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>聲音與字幕</b><span>（微電影才要）mv-14 口白、環境音<br>寫 audio_cues.json</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>組裝</b><span>make_mv --videos<br>裁秒數、丟原聲、再擋一次規格；微電影加 --audio-cues（閃避混音、雙層字幕）</span></div><div class="arrow">→</div>
   <div class="step"><span class="who m">三家皆可</span><b>機器檢查</b><span>review_mv<br>產出 pass1／cuts 抽幀圖</span></div><div class="arrow">→</div>
   <div class="step stop"><span class="who m">三家各看</span><b>⛔ 三家抽幀</b><span>字幕帶、亂碼、角色崩壞、轉場<br>三家都說 OK 才算完成</span></div><div class="arrow">→</div>
   <div class="step"><span class="who m">三家皆可</span><b>打包上架</b><span>metadata.md、封面<br>先 private，老師說公開才改</span></div>

@@ -12,7 +12,7 @@
 | 2 | 歌詞與曲風 → SUNO 生歌 | mv-01（共修）＋ SUNO | `music/` 原曲 mp3 | [ ] |
 | 3 | 主角造型 | mv-02（共修） | `角色錨點.md`＋`shots/character_ref.png`（**單張半身**，不是左右分割定妝圖） | [ ] |
 | 4 | 時間軸分鏡表 | mv-11 | `storyboard_v1.md`（秒數加總＝歌長、單鏡 ≤10 秒、標最難一鏡） | [ ] |
-| 5 | 場景提示詞、分鏡圖 | mv-03、mv-04（共修）、mv-12 生圖 | `shots/cutNN_*.png` | [ ] |
+| 5 | 場景提示詞、分鏡圖 | mv-03（共修）、mv-12 生圖；mv-04 選用（同一場景先試機位）、mv-05 放大 | `shots/cutNN_*.png` | [ ] |
 | 6 | 影片提示詞 | mv-06（**審核**，三家無意見） | 定案稿在共修紀錄 → 記到 `共審紀錄.md` | [ ] |
 | 7 | 選路線 | 老師決定整支 MV 走 🅰 Colab H3、🅱 Google Flow、🅲 Magnific 或 🅳 Kling.ai | 寫在 `brief.md` 最後一行 | [ ] |
 | 8🅰 | H3 分鏡審核 → 拆檔 → **首幀組圖審查**（看得到圖的一方做，沒過不送生成）→ 清單（老師逐鏡選放大方式）→ 老師說「直接生影片」→ **先做最難一鏡** → 整批生成 → 放大 → 搬回 | `--flow mv-h3`、`h3_specs_from_review.py`、`h3_guard.py`（守護會自己叫 h3_batch.py）、`collect_videos.py` | `videos-raw/cutNN_*.mp4` | [ ] |
