@@ -50,7 +50,7 @@ th{color:var(--sub);font-weight:600}
 </style></head><body><div class="wrap">
 
 <h1>MV 影片生成工作流（2026-10-18 盤點）</h1>
-<div class="meta">正本：01_MV製作/docs/影片分流策略.md（d475f5b）｜整支 MV 選一條路線，個別鏡頭可用 🅲／🅳 補生｜點數為 10/18 實查</div>
+<div class="meta">正本：01_MV製作/docs/影片分流策略.md（d475f5b）｜整支 MV 選一條路線，個別鏡頭可用 🅲／🅳 補生｜點數為 10/18 實查（Kling 11/1 再查仍 660）｜11/1 盤整更新</div>
 
 <div class="rule">🔁 <b>全流程規則：所有指令與提示詞都要三方共審</b>（cowrite：Claude × Codex × Gemini）到「沒有意見」才往下走——劇本、歌詞＋曲風、角色與分鏡圖提示詞、時間軸分鏡、影片提示詞，以及各路線的 H3 分鏡、Flow 提示詞、Magnific／Kling 生成指令。</div>
 <div class="stage"><span class="no">階段 1</span><span class="t">概念到提示詞</span><span class="s">純文字＋分鏡圖，不扣點</span></div>
@@ -74,10 +74,10 @@ th{color:var(--sub);font-weight:600}
       <div><span class="k">輸出</span>1344×768 → <b>FlashVSR</b> 放大到 1080p</div>
       <div><span class="k">扣</span>Colab 運算單元（A100 約 6.77／時）</div>
       <div><span class="k">速度</span>一鏡約 7～13 分鐘</div>
-      <ul><li>H3 分鏡要再三方審一次</li><li>RTX VSR 在 A100 跑不起來（code -14）</li><li>用完一定要斷線</li></ul>
+      <ul><li>H3 分鏡要再三方審一次</li><li>RTX VSR 在 A100 跑不起來（code -14）</li><li>用完一定要斷線（經 colab_bridge 跑的放不掉，請老師手動中斷）</li></ul>
       <div style="margin-top:8px"><span class="tag ok">實戰：〈雨夜404檔案〉47 鏡</span></div>
     </div></div>
-  <div class="route B"><div class="hd"><div class="n">🅱 Google Flow</div><div class="w">老師自己逐鏡生</div></div>
+  <div class="route B"><div class="hd"><div class="n">🅱 Google Flow</div><div class="w">三家皆可代跑（flow_auto.py）｜每台老師 login 一次</div></div>
     <div class="bd">
       <div><span class="k">模型</span>Veo 3.1／<b>Omni 1.1 Flash</b></div>
       <div><span class="k">秒數</span>4／6／8 秒（Extend 可延長）</div>
@@ -103,7 +103,7 @@ th{color:var(--sub);font-weight:600}
       <div><span class="k">輸出</span>預設 720p，<b>要明寫 1080p</b></div>
       <div><span class="k">扣</span>Kling 點數（沒有試算工具）</div>
       <ul><li>4.0＋Element 要走 omni_ref_video（按秒計費）</li><li>首幀＋Element 用 Kling 3.0</li><li>第一鏡前後查點數相減</li><li>660 點不夠就只補關鍵鏡</li></ul>
-      <div style="margin-top:8px"><span class="tag no">還沒生過</span><span class="tag mid">點數待第一鏡實測</span></div>
+      <div style="margin-top:8px"><span class="tag mid">10/27 試生 2 鏡（v3.0 turbo）</span><span class="tag mid">turbo 1080p 每秒 10 點</span></div>
     </div></div>
 </div>
 
@@ -111,7 +111,8 @@ th{color:var(--sub);font-weight:600}
   <div class="box"><h3>🎤 對嘴／說話鏡頭怎麼選</h3>
     <table><tr><th>需求</th><th>用什麼</th><th>狀態</th></tr>
     <tr><td>角色唸台詞、口白、rap</td><td>🅱 Flow Omni（台詞寫在提示詞）</td><td><span class="tag ok">已驗證</span></td></tr>
-    <tr><td>照 SUNO 歌聲對嘴唱</td><td>🅲 OmniHuman（角色圖＋分離出的人聲，最長 30 秒）</td><td><span class="tag mid">未實測</span></td></tr>
+    <tr><td>照 SUNO 歌聲對嘴唱</td><td>🅰 H3 唱歌鏡（audio.fixed＋demucs 人聲）</td><td><span class="tag ok">中近景 2/2</span><span class="tag no">特寫 0/2</span></td></tr>
+    <tr><td>同上，換別家</td><td>🅲 OmniHuman（角色圖＋分離出的人聲，最長 30 秒）</td><td><span class="tag mid">未實測</span></td></tr>
     <tr><td>同上，不想花 Magnific 點數</td><td>🅱 Omni 拿 SUNO 人聲當聲音參考</td><td><span class="tag mid">未試</span></td></tr>
     <tr><td>把現成影片改成對嘴</td><td>🅲 Veed Sync 2.0（140 點／秒）</td><td><span class="tag mid">未實測</span></td></tr></table>
   </div>

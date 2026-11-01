@@ -8,7 +8,7 @@ AI MV 製作工具箱：14 支 MV skill 的專案副本、三方共審接點、C
 新專案       python scripts/new_mv.py "<MV名>"  → outputs/<MV名>/（照裡面 README 的進度檢核做）
 企劃～影片提示詞  15_ai共筆工作流 cowrite --flow mv（影片提示詞為審核模式，三家「無意見」）
 分鏡表       mv-11 → outputs/<MV名>/storyboard_vN.md（所有腳本共用）
-影片分流 🅰  Colab H3：--flow mv-h3 審核 → h3_specs_from_review.py → h3_batch.py（三家皆可經 colab_bridge.py 代跑）
+影片分流 🅰  Colab H3：--flow mv-h3 審核 → h3_specs_from_review.py → h3_guard.py（守護會自己叫 h3_batch.py；三家皆可經 colab_bridge.py 代跑）
          🅱  Google Flow：--flow mv-flow 審核 → flow_auto.py run jobs.json --go（三家皆可代跑；該台先 login 一次）
          🅲  Magnific／🅳 Kling.ai：三家皆可經 MCP 代跑（細節見分流文件）
 收片檢查     collect_videos.py（1920×1080、24 fps、秒數、缺鏡）
@@ -21,10 +21,12 @@ AI MV 製作工具箱：14 支 MV skill 的專案副本、三方共審接點、C
 - 畫面規範：[docs/影片製作基本原則.md](docs/影片製作基本原則.md)
 - 單一 MV 範本：[MV專案範本/](MV專案範本/)
 - MV skill 正本在 dotfiles `.skills/`，同步方式見 [CLAUDE.md](CLAUDE.md)「MV skill 的正本與同步」
-- 外部教材的比對與落地紀錄：[docs/參考比對_DSLab研習.md](docs/參考比對_DSLab研習.md)（2026-10-30，含當天落地的放大分流、資產狀態表、🅰 第 3.5 步、Omni 嘴型查證）、[docs/參考比對_山獅霸工作流.md](docs/參考比對_山獅霸工作流.md)（2026-10-09 分析，**H3 那幾節已於 2026-10-30 依「🅰 Colab H3 是主路線」翻案**）
+- 外部教材的比對與落地紀錄：[docs/參考比對_DSLab研習.md](docs/參考比對_DSLab研習.md)（2026-10-30，含當天落地的放大分流、資產狀態表、🅰 第 3.5 步、Omni 嘴型查證）、[docs/參考比對_山獅霸工作流.md](docs/參考比對_山獅霸工作流.md)（2026-10-09 分析，**H3 那幾節已於 2026-10-30 依「🅰 Colab H3 是主路線」翻案**）、[docs/參考比對_山獅霸Colab工作流.md](docs/參考比對_山獅霸Colab工作流.md)（2026-10-31，Colab 版；audio.fixed 已測過並接進 🅰 唱歌鏡）
 - 舊流程（10 步、第二版、舊專案範本、九宮格大圖、Wan 本機）都在 [docs/_歷史/](docs/_歷史/)，**不要照著做**
 
 ---
+
+> 🗄️ **以下到檔尾都是舊版網頁介面（12 步導覽）的說明**，跟上面的「現行流程」不同步；做新 MV 照上面，不要照下面的步驟與命名。
 
 ## 網頁介面（舊版 12 步導覽，仍可用）
 
@@ -82,7 +84,7 @@ AI MV 製作工具箱：14 支 MV skill 的專案副本、三方共審接點、C
 - `10_電影感打光指令_01.md`
 - `output_Flow_成品片段_01.mp4`
 
-## 建議下一步
+## 建議下一步（舊網頁版當時的規劃）
 
 - 補一組「從主題到成品」的完整示範
 - 依實際使用情境微調各步驟 Prompt
