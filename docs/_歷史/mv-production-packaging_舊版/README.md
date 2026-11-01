@@ -1,3 +1,5 @@
+> ⚠️ **舊版存檔，不要照做。** 原本是 `.claude/skills/mv-production-packaging/README.md`（舊 11 步：HANDOFF.md、media-generation 生圖生影片、FFmpeg concat、VLC 驗證），2026-11-01 盤點時搬來。現行流程看 [專案 README](../../../README.md)「現行流程」與 [影片分流策略](../../影片分流策略.md)。
+
 # MV 製作完整工作流 - Skill 簡明指南
 
 ## 🎬 這個 Skill 是什麼？

@@ -178,15 +178,12 @@ author: 羅東國小資訊組長
 - **輸入**: 主題 + 角色類別
 - **輸出**: 可直接使用的圖片和影片提示詞
 
-### media-generation（AI 多媒體生成器）
-- **觸發詞**: `生圖`、`生影片`、`AI 繪圖`、`Dreamina`、`FLUX`、`Kling`
-- **主要功能**: 
-  - 🎵 使用 SUNO 生成原創音樂（從 MV_01 的風格描述）
-  - 🎨 生成高品質圖片（FLUX.1 或 Ideogram，$0.03-0.05/張）
-  - 🎬 生成動態影片（Kling/Hailuo 快速版 或 Seedance 2.0 電影感，$0.07-0.30/秒）
-- **使用時機**：
-  1. 步驟 2：生成音樂（基於 MV_01 的 SUNO 風格）
-  2. 步驟 8：生成所有圖片和影片素材
+### media-generation（舊版參考，⛔ 不用來生影片）
+- **觸發詞**: 只在明講 `media-generation`、`FLUX`、`Ideogram`、`FAL` 時
+- **現況**（2026-11-01）：FAL 付費生圖（FLUX.1／Ideogram）的舊做法，內附的 Kling V2.1／Hailuo／Seedance 生影片段落已標成舊做法
+- **生影片**：一律走影片分流 🅰／🅱／🅲／🅳，正本是 `docs/影片分流策略.md`（01_MV製作 專案內）
+- **生圖**：Codex、Antigravity 用內建免費生圖；Claude 用 `mv-12`／`draw`（Cloudflare → Pollinations → Vertex）
+- **SUNO 生歌**：使用者自己在 SUNO 官網做（見總覽表步驟 2）
 
 ### MV_10：電影感打光指令集
 - **觸發詞**: `打光`、`lighting`、`電影感`、`照明`

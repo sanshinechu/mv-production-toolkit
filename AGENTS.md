@@ -245,29 +245,23 @@
 
 ---
 
-## MV_組裝、打包與上傳
+## MV_組裝、檢查、打包與上傳
 
-生成完素材後，將影片段與音樂組裝成完整 MV，並準備發布。
+> 正本：[README.md](README.md)「現行流程」與 [docs/影片分流策略.md](docs/影片分流策略.md)「交件前檢查」「⛔ 抽幀停損點」，這裡只列順序，細節照正本。**不要手寫 FFmpeg `concat` 組裝**（那是舊做法，會跳過解析度、fps、秒數的檢查）。
 
-**組裝（FFmpeg）：**
-- 用 `concat` 串接影片段，`-map` 分別對應影像與音訊。
-- ⚠️ 不要用 `-shortest`，會截斷音樂。
-- 確保各段編碼一致（統一 h.264 / aac），組裝後用 VLC 本地驗證音畫同步與總時長。
+**組裝與檢查（四條影片路線共用）：**
+1. 收片檢查：`python scripts/collect_videos.py <MV名> --storyboard outputs/<MV名>/storyboard_vN.md --check`——擋缺鏡、秒數不足、不是 1920×1080、不是 24 fps、檔名對不上分鏡表。
+2. 組裝：`python scripts/make_mv.py --videos outputs/<MV名>/videos-raw --storyboard outputs/<MV名>/storyboard_vN.md --size 1920x1080 --music <歌.mp3> --out outputs/<MV名>/<MV名>_完整MV.mp4`（裁到分鏡秒數、丟原聲、兩段式響度；唱歌鏡讀 `_sing_cuts.json` 不加速）。
+3. 自動檢查：`python scripts/review_mv.py outputs/<MV名>/<MV名>_完整MV.mp4 --music <歌.mp3> --storyboard outputs/<MV名>/storyboard_vN.md`，產出 `review/` 的 `_pass1.jpg`（逐鏡抽格）與 `_cuts.jpg`（切點前後）。
+4. ⛔ **抽幀停損點**：`review_mv.py` 全綠**不等於**可以交件。Claude／Codex／Antigravity **三家各自親眼看**那兩張圖（字幕帶淨空、亂碼字、角色崩壞、轉場），**三家都說 OK 才算過**；有問題回該鏡重生 → 重新 collect → 組裝 → 再看。通過後在每日筆記記下日期與各家結論。
 
-**打包（資產整理）：**
-```
-outputs/MV標題/
-├── MV_完整.mp4        主檔
-├── cover.png          1920×1080 封面
-├── metadata.md        YouTube 元數據（描述／章節／SEO／標籤／檢查清單）
-├── README.md / CREDITS.md
-└── source-assets/     原始素材備份（角色圖、9 張分鏡圖、影片原檔、音樂）
-```
+**打包：** 照 `python scripts/new_mv.py "<MV名>"` 建出的 `outputs/<MV名>/` 結構（範本見 `MV專案範本/`），`metadata.md` 放 YouTube 描述／章節／標籤。
 
 **上傳（YouTube）：**
-- 標題不超過 100 字；描述前 100 字含主關鍵詞與演唱者名。
-- 加章節時間碼（每 30–60 秒一個），標籤最多 30 個。
-- 先設「不公開」驗證，確認無誤再改「公開」。
+- 用共用上傳腳本 `03_剪片工作流/skills/youtube-publisher/upload_youtube.py`，指令與注意事項見 [CLAUDE.md](CLAUDE.md)「上傳 YouTube（仍有效）」：先 `--dry-run`、MV 要加 `--title` 與 `--category 10`。
+- 上傳、排程、改公開前，先列出檔案、標題、隱私設定，**取得老師當次明確同意**才執行；一律先 `private`，老師說公開才改。
+- 標題不超過 100 字；描述前 100 字含主關鍵詞與演唱者名；章節時間碼每 30–60 秒一個；標籤最多 30 個。
+- 上架後老師會把資料夾移到各台的封存位置，在 `outputs/` 找不到不代表遺失，先問老師。
 
 ---
 

@@ -11,3 +11,4 @@
 | `ComfyUI_MV04_高解析九宮格工作流.md` | 先生一張 5016×5016 九宮格大圖再切 9 格 | mv-04 v1.1.0 起改成**各自生成 9 張**（2026-10-09） | 家裡筆電 8 GB 的 ComfyUI 生圖設定 |
 | `Wan_本地影片生成串接.md` | 家裡筆電 Wan 2.1 Q3 本機圖生影片 | 影片分流策略 🅰 Colab H3（A100） | — |
 | `CLAUDE_MV製作12步流程_v2.0.md` | 原本塞在 `CLAUDE.md` 的 12 步流程（v2.0，2026-05） | 專案 README「現行流程」＋影片分流策略＋各支 MV skill（2026-11-01 搬來） | Step 11 的 metadata.md 7 區塊規格（`MV專案範本/metadata.md` 仍照它） |
+| `mv-production-packaging_舊版/` | 舊的「MV 製作完整工作流總控」skill（11 步：HANDOFF.md、media-generation 生影片、FFmpeg concat、VLC） | `.claude/skills/mv-production-packaging/` 短版（只管交件收尾）＋專案 README「現行流程」（2026-11-01 搬來） | 封面截圖、HANDOFF 欄位的舊寫法 |

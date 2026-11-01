@@ -1,14 +1,19 @@
 ---
 name: AI 多媒體生成器
-description: 生成高品質圖片和影片。生圖支援 FLUX.1/Ideogram，生影片支援 Kling/Hailuo/Dreamina Seedance 2.0（電影感）
-triggers: 生圖、生影片、生成圖片、生成影片、AI 繪圖、AI 影片、Dreamina、FLUX、Kling、Hailuo
-version: 2.0.0
+description: （舊版參考）用 FAL 付費 API 生圖（FLUX.1／Ideogram）的舊做法。⛔ MV 生影片不要用這支，一律走 docs/影片分流策略.md 的 🅰～🅳 四條路線；MV 生圖走 mv-12／draw 或 Codex、Antigravity 內建。只有使用者明講 media-generation、FLUX、Ideogram 或 FAL 時才用
+triggers: media-generation、FLUX、Ideogram、FAL
+version: 2.1.0
 author: 阿亮老師・3A科技研究社
 ---
 
 > 🛑 **生成授權（硬性）**：先交出提示詞、模型與成本估計，並詢問使用者是否要「直接生圖」或「直接生影片」。只有收到這兩句明確授權之一，才可執行本檔任何會呼叫外部模型、FAL API、curl 或下載成品的命令；否則停在提示詞與方案比較。
 
 > ⚠️ **工具狀態**：本專案副本未附 `scripts/generate_video.py`。下方的 Seedance 腳本範例不可直接執行；要使用該管道時，先確認已安裝、可用且經使用者同意的工具，再提供相符命令。
+
+> ⛔ **2026-11-01 起：生影片不要用這支。** 本檔的 Kling V2.1／Hailuo／Wan 2.1／Seedance 2.0 與美金報價是舊做法。
+> MV 要生影片，一律照 `docs/影片分流策略.md`（01_MV製作 專案內，唯一正本）選 🅰 Colab H3、🅱 Google Flow（`flow_auto.py`）、🅲 Magnific 或 🅳 Kling.ai；
+> 其他 skill 寫「用 media-generation 生成影片」的地方，一律改讀分流策略。
+> MV 生圖的現行管道：Codex、Antigravity 內建免費生圖，Claude 走 `mv-12`／`draw`（Cloudflare → Pollinations → Vertex）。本檔的 FAL 付費生圖只在使用者明講時才用。
 
 ## 🎨 功能說明
 
@@ -36,7 +41,7 @@ author: 阿亮老師・3A科技研究社
 | **Ideogram V3** | 文字渲染強 | $0.03-0.09 | 有文字需求 |
 | **FLUX Schnell** | 最快最便宜 | $0.003/張 | 快速草稿 |
 
-### 生影片模型對比
+### 生影片模型對比（⛔ 舊做法，生影片改走影片分流策略）
 
 | 模型 | 特色 | 價格 | 時長 | 場景 |
 |------|------|------|------|------|
@@ -59,7 +64,7 @@ author: 阿亮老師・3A科技研究社
 2. 選擇 **FLUX.1 Dev** 或 **Ideogram V3**
 3. 生成高品質人物和場景圖片
 
-### 階段 3：靜態圖→動態影片
+### 階段 3：靜態圖→動態影片（⛔ 舊做法，改走影片分流策略）
 1. 使用 **MV_06** 的影片提示詞
 2. 根據場景選擇合適的生影片模型：
    - **快速場景**：使用 Kling 或 Hailuo
@@ -109,7 +114,7 @@ curl -s -o "output.jpg" "{返回的圖片 URL}"
 
 ---
 
-### 🎥 生影片流程
+### 🎥 生影片流程（⛔ 舊做法，改走影片分流策略，不要照下面的指令生）
 
 **快速版（Kling/Hailuo）**
 ```bash
@@ -178,7 +183,7 @@ curl -s -X POST "https://fal.run/fal-ai/kling-video/v2.1/master/text-to-video" \
 3. ✅ **MV_02** → 設計角色（獲得提示詞）
 4. 🎨 **media-generation** → 生圖確認角色外觀
 5. ✅ **MV_03~06** → 完成所有視覺和影片提示詞
-6. 🎬 **media-generation** → 批量生成所有圖片和影片
+6. 🎬 生影片 → **影片分流策略** 🅰～🅳（不是 media-generation）；生圖 → mv-12／draw 或 Codex、Antigravity 內建
 7. ✅ **youtube-publisher** → 上傳到 YouTube
 
 ---
