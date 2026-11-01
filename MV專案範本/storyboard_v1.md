@@ -1,7 +1,9 @@
 # {{MV名}}｜分鏡表 v1
 
 > 由 mv-11 填寫。下面「分鏡表」那張表會被 `scripts/storyboard_md.py` 讀走（make_mv／review_mv／collect_videos／h3_specs_from_review 共用），**欄位名稱不要改**。
-> 規則：秒數加總＝歌長；要生影片的鏡 ≤10 秒；動畫用 zoom_in／zoom_out／pan_left／pan_right；轉場寫「進/出」，用 fadein／fade／whiteflash／fadeout。
+> 規則：秒數加總＝歌長；要生影片的鏡 ≤10 秒；動畫用 zoom_in／zoom_out／pan_left／pan_right；轉場寫「進/出」，用 fadein／fade／whiteflash／fadeout；景別不要連續 3 鏡相同，唱歌鏡不排臉部特寫。
+
+**導演任務**：我想讓＿＿聽完／看完感覺到＿＿（1–2 個感覺詞；「好看、高級」是評價不是感覺）
 
 ## 1. 歌曲結構分析
 
@@ -9,9 +11,9 @@
 
 ## 3. 分鏡表
 
-| Cut | 時間 | 秒數 | 歌詞對應 | 畫面 | 動畫 | 進/出轉場 |
-|---|---|---|---|---|---|---|
-| cut01_ | 0:00– |  |  |  | zoom_in | fadein/fade |
+| Cut | 時間 | 秒數 | 歌詞對應 | 畫面 | 感覺 | 動畫 | 進/出轉場 |
+|---|---|---|---|---|---|---|---|
+| cut01_ | 0:00– |  |  | （景別）… |  | zoom_in | fadein/fade |
 
 **最難一鏡**：
 
