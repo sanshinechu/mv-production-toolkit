@@ -49,18 +49,18 @@ th{color:var(--sub);font-weight:600}
 .legend{margin-top:18px;color:var(--sub);font-size:14px;display:flex;gap:18px;flex-wrap:wrap}
 </style></head><body><div class="wrap">
 
-<h1>MV 影片生成工作流（2026-10-18 盤點）</h1>
-<div class="meta">正本：01_MV製作/docs/影片分流策略.md（d475f5b）｜整支 MV 選一條路線，個別鏡頭可用 🅲／🅳 補生｜點數為 10/18 實查（Kling 11/1 再查仍 660）｜11/1 盤整更新</div>
+<h1>MV 影片生成工作流（2026-11-01 盤點）</h1>
+<div class="meta">正本：01_MV製作/docs/影片分流策略.md（圖跟著正本改，以正本為準）｜整支 MV 選一條路線，個別鏡頭可用 🅲／🅳 補生｜Magnific 點數為 10/18 實查、Kling 11/1 實查 660 點</div>
 
-<div class="rule">🔁 <b>全流程規則：所有指令與提示詞都要三方共審</b>（cowrite：Claude × Codex × Gemini）到「沒有意見」才往下走——劇本、歌詞＋曲風、角色與分鏡圖提示詞、時間軸分鏡、影片提示詞，以及各路線的 H3 分鏡、Flow 提示詞、Magnific／Kling 生成指令。</div>
+<div class="rule">🔁 <b>全流程規則：所有指令與提示詞都要三方共審</b>（cowrite：Claude × Codex × Gemini）到「沒有意見」才往下走——劇本、歌詞＋曲風、角色提示詞、時間軸分鏡、分鏡圖提示詞、影片提示詞，以及各路線的 H3 分鏡、Flow 提示詞、Magnific／Kling 生成指令。</div>
 <div class="stage"><span class="no">階段 1</span><span class="t">概念到提示詞</span><span class="s">純文字＋分鏡圖，不扣點</span></div>
 <div class="row">
   <div class="step"><span class="who m">三家皆可</span><b>劇本</b><span>mv-13 微電影三幕劇<br>（要劇情才用）</span></div><div class="arrow">→</div>
   <div class="step"><span class="who m">三家皆可</span><b>歌詞＋曲風</b><span>mv-01</span></div><div class="arrow">→</div>
   <div class="step"><span class="who t">老師</span><b>SUNO 生歌</b><span>依實際長度<br>重算段落秒數</span></div><div class="arrow">→</div>
   <div class="step"><span class="who m">三家皆可</span><b>角色定妝</b><span>mv-02＋鎖臉，單張半身參考圖<br>Codex／Antigravity 用<b style="display:inline;font-size:15px;margin:0">內建免費生圖</b></span></div><div class="arrow">→</div>
-  <div class="step"><span class="who m">三家皆可</span><b>分鏡圖</b><span>mv-03／04／05 每鏡一張首幀<br>Codex／Antigravity 用<b style="display:inline;font-size:15px;margin:0">內建免費生圖</b></span></div><div class="arrow">→</div>
-  <div class="step"><span class="who m">三家皆可</span><b>時間軸分鏡</b><span>mv-11 對拍切點<br>標「最難一鏡」</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>時間軸分鏡</b><span>mv-11 對拍切點<br>標「最難一鏡」<br>先定鏡號再生圖</span></div><div class="arrow">→</div>
+  <div class="step"><span class="who m">三家皆可</span><b>分鏡圖</b><span>mv-03／04／05／12 照分鏡表每鏡一張首幀<br>Codex／Antigravity 用<b style="display:inline;font-size:15px;margin:0">內建免費生圖</b></span></div><div class="arrow">→</div>
   <div class="step"><span class="who m">三家皆可</span><b>影片提示詞</b><span>mv-06</span></div>
 </div>
 <div class="gate">🚦 影片提示詞共審「沒有意見」→ 老師選路線 → 列清單（秒數、首幀、點數）→ <b>老師說「直接生影片」才生</b> → 一律<b>先做最難一鏡</b>，沒問題再整批</div>

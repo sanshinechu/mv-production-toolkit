@@ -17,6 +17,8 @@
 | 7 | 選路線 | 老師決定整支 MV 走 🅰 Colab H3、🅱 Google Flow、🅲 Magnific 或 🅳 Kling.ai | 寫在 `brief.md` 最後一行 | [ ] |
 | 8🅰 | H3 分鏡審核 → 拆檔 → 清單 → 生成 → 放大 → 搬回 | `--flow mv-h3`、`h3_specs_from_review.py`、`h3_guard.py`（守護會自己叫 h3_batch.py）、`collect_videos.py` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 8🅱 | Flow 提示詞審核 → AI 用 `flow_auto.py` 上傳首幀與提示詞、送出生成、下載 → 放回 | `--flow mv-flow`、`flow_auto.py run`、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
+| 8🅲 | Magnific：選模型＋`simulate_cost` 試算 → 清單（含點數）→ 最難一鏡 → 整批 → 下載改名放回 | Magnific MCP（`video_generate`，1080p、`withSoundEffects: false`）、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
+| 8🅳 | Kling.ai：查點數 → （要鎖角色才）建 Element → 上傳首幀 → 清單 → 最難一鏡量點數 → 整批 → 下載改名放回 | Kling MCP（`image_to_video`／`omni_ref_video`，**要明寫 1080p**）、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 9 | 組裝 1080p | `make_mv.py --videos --storyboard --size 1920x1080` | `{{MV名}}_完整MV.mp4` | [ ] |
 | 10 | 自動檢查 | `review_mv.py --storyboard` | `review/` | [ ] |
 | 11 | ⛔ **三家抽幀**（字幕淨空／亂碼／角色／轉場） | Claude／Codex／Antigravity 各自看 `review/*_pass1.jpg`、`*_cuts.jpg` | 三家都說 OK → 記日期與各家結論 | [ ] |

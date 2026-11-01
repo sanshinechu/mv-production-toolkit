@@ -215,7 +215,7 @@
 3. 依音樂節奏切分鏡頭，每個鏡頭標註：起訖秒數、對應歌詞、畫面描述、運鏡。
 4. 切點對齊歌詞與能量轉折，避免固定秒數硬切。
 
-輸出：一份可直接對照 FFmpeg 組裝腳本的分鏡表（檔名前綴與生圖／組裝一致）。
+輸出：`outputs/<MV名>/storyboard_vN.md`，鏡號 `cutNN`。`collect_videos.py`、`make_mv.py`、`review_mv.py` 三支腳本都讀這一份（`scripts/storyboard_md.py` 解析），**不要各自改秒數**；並在表下方標出「最難一鏡」。
 
 ---
 
@@ -225,9 +225,9 @@
 
 **流程：**
 1. 讀取分鏡表中每個鏡頭的提示詞。
-2. 逐一送生圖管道產圖（免費管道：Cloudflare Workers AI 優先、Pollinations 備援）。
-3. 檔名以鏡頭序號為前綴（例：`01_`、`02_`），確保與組裝腳本順序一致。
-4. 檢查角色一致性與色調統一。
+2. 逐一送生圖管道產圖（Codex／Antigravity 用內建免費生圖；Claude 走 Cloudflare Workers AI → Pollinations 備援）；先交提示詞，老師說「直接生圖」才生。
+3. 檔名用分鏡表的鏡號當前綴：`cutNN_場景關鍵字`（例：`cut06_crayon_circle`），要跟 `storyboard_vN.md` 的 cut 編號對齊；當 🅰 首幀時改名 `cutNN_first.png`。
+4. 先試做 1–2 鏡確認風格再整批；生完拼成總覽圖檢查角色一致性與色調統一（當首幀時就是 🅰 第 3.5 步的首幀組圖審查）。
 
 ---
 
