@@ -2,7 +2,7 @@
 name: 影片提示詞生成
 description: 為靜態圖片添加動態效果描述，生成適用於影片生成工具的中文提示詞
 triggers: 影片提示詞、動態效果、視頻提示詞、靜態變動態、添加動態
-version: 1.4.1
+version: 1.4.2
 author: 羅東國小資訊組長
 ---
 
@@ -151,7 +151,7 @@ Exactly 3 people. LOCKED-OFF STATIC CAMERA on a tripod. NO black letterbox bars.
 選擇以下方式之一：
 
 **方式 A：上傳靜態圖片**
-- 來自 MV_04 九宮格或 MV_05 放大後的圖片
+- 對齊分鏡表的 `cutNN_*` 分鏡圖（MV_12 逐鏡生，或 MV_05 放大後的同名圖；MV_04 探索圖要先改名成 `cutNN_*`）
 
 **方式 B：提供文字主題**
 - 描述要動畫化的場景和主題
@@ -294,7 +294,7 @@ A: 可以。描述色彩分級、失焦、光斑、動感模糊等效果都是�
 
 > 🔀 **影片分流**（2026-10-10）：影片提示詞三方共審（`15_ai共筆工作流/cowrite.py --flow mv`）「無意見」後，整支 MV 選 **Colab H3**（Claude 寫 H3 分鏡初稿 → `--flow mv-h3` 三方審核 → 拆檔檢查 → 列清單給老師確認後代跑，AI 放大到 1080p）、**Google Flow**（`--flow mv-flow --from` 再共審 Flow 提示詞，AI 用 `flow_auto.py` 幫老師上傳首幀與提示詞、送出生成，再下載 1080p 成品放回 `videos-raw/`；每台老師先 login 一次）、**Magnific**（2026-10-18 加：AI 透過 MCP 代跑（Claude／Codex／Antigravity 皆可），內含 Kling／Seedance，先 `simulate_cost` 報點數；也可只補單鏡）或 **Kling.ai**（2026-10-18 加：透過 Kling 官方 MCP 代跑，有 Kling 4.0 與 Element 鎖角色；也可只補單鏡）。規則唯一正本：`docs/影片分流策略.md`（01_MV製作 專案內），這裡不抄內容。
 
-1. **media-generation Skill** → 使用提示詞生成影片
+1. **影片分流** → 照上面 🔀 那段，依 `docs/影片分流策略.md` 選 🅰～🅳 路線生成影片（`media-generation` 已改成舊版參考，不再用來生影片）
 2. **MV_09 Google Flow 微電影製作** → 製作首尾幀無縫轉場
 3. **YouTube 上傳準備** → 準備最終的影片發布
 
