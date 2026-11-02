@@ -16,4 +16,5 @@
 | `CODEX_GUIDE_主角生圖交接_20260523.md` | 原根目錄 `CODEX_GUIDE.md`：5/23 一次性交接 Codex 生 Split Screen 主角圖 | mv-02（另出單張半身參考圖）＋ mv-12 | — |
 | `FIREBASE_FIX_GUIDE_舊網頁.md` | 原根目錄 `FIREBASE_FIX_GUIDE.md`：舊 12 步網頁存檔失敗的 Realtime Database 規則修法 | 舊網頁已不用（`index.html` 改跳總覽圖，舊頁在根目錄 `index.html.backup`） | 舊網頁 Firebase 規則 |
 | `filelist_ffmpeg串接清單_202607.txt` | 原根目錄 `filelist.txt`：2026-07 手寫 FFmpeg concat 清單，路徑寫死 `I:\` | `scripts/make_mv.py --videos --storyboard` | — |
+| `根目錄舊檔/`（**被 gitignore，只在 Drive**） | 原根目錄 `HANDOFF.md`（5 月測試 MV 交接，後半亂碼）、`MV製作進度追蹤.md`（5/23）、`MIGRATION_REPORT.md`（7 月搬 repo）、`工作日誌_2026-08-07`～`10-10.md` 五份、`畢業影片MV製作對話記錄_20260429.md`（2026-11-02 搬來） | 各 MV 自己的 `outputs/<MV名>/README.md`＋工作筆記本每日筆記 | — |
 | `ai-media-generator_阿亮老師舊版/` | 原根目錄 `ai-media-generator/`：阿亮老師的 FAL 生圖生影片 skill（FLUX、Kling V2.1、Hailuo、Seedance 舊價格），沒註冊進任何工具 | 影片分流策略四條路線；生圖走 mv-12 | 阿亮老師新講義的比對見 `../參考比對_阿亮AI電影感短片.md` |

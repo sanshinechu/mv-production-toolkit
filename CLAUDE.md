@@ -89,6 +89,6 @@ uv run --with google-api-python-client --with google-auth-oauthlib \
 2. MV 檔名是 `<標題>_完整MV.mp4` 跟標題對不起來 → **一定要加 `--title`**
 3. MV 屬音樂類 → `--category 10`（腳本預設 27 教育）
 4. 預設 `--privacy private`，確認無誤後再改 unlisted / public
-5. 跑完資料夾會多一份 `youtube-upload.json`（videoId、連結），回填 HANDOFF.md 用
+5. 跑完資料夾會多一份 `youtube-upload.json`（videoId、連結），留在該 MV 資料夾，對應範本 README 第 12 步（根目錄舊的 HANDOFF.md 已於 2026-11-02 移到 `docs/_歷史/根目錄舊檔/`）
 
 **批次上傳或頻道管理**才改用 `yt-auto-publisher/scripts/`（同一組憑證，見 `.claude/skills/youtube-publisher/SKILL.md`）。
