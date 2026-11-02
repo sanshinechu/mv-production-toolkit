@@ -12,7 +12,7 @@ AI MV 製作工具箱：14 支 MV skill 的專案副本、三方共審接點、C
 分鏡圖       mv-03 寫提示詞 → mv-12 照分鏡表逐鏡生，檔名 cutNN_*（老師說「直接生圖」才生）
            mv-04 選用：同一場景先試 9 個機位再挑；mv-05 挑重點放大
 影片分流 🅰  Colab H3：--flow mv-h3 審核 → h3_specs_from_review.py → %run h3_guard.py（一定用 %run，!python 放不掉 GPU；守護會自己叫 h3_batch.py；三家皆可經 colab_bridge.py 代跑，但橋接分頁放不掉 GPU、跑完要老師手動中斷）
-         🅱  Google Flow：--flow mv-flow 審核 → flow_auto.py run jobs.json --go（三家皆可代跑；該台先 login 一次）
+         🅱  Google Flow：--flow mv-flow 審核 → flow_auto.py run jobs.json（預演）→ 老師說直接生影片 → run jobs_hardest.json --project <預演網址> --go（最難一鏡）→ 老師看過 → run jobs.json（拿掉已生的鏡）--project <同網址> --go（三家皆可代跑；該台先 login 一次）
          🅲  Magnific／🅳 Kling.ai：三家皆可經 MCP 代跑（細節見分流文件）
 收片檢查     collect_videos.py（1920×1080、24 fps、秒數、缺鏡）
 組裝         make_mv.py --videos --storyboard --size 1920x1080 → review_mv.py
