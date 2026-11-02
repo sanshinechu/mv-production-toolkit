@@ -11,12 +11,12 @@
 | 1 | 企劃 | cowrite `--flow mv`（劇情企劃） | `brief.md` | [ ] |
 | 2 | 歌詞與曲風 → SUNO 生歌 | mv-01（共修）＋ SUNO | `music/` 原曲 mp3 | [ ] |
 | 3 | 主角造型 | mv-02（共修） | `角色錨點.md`＋`shots/character_ref.png`（**單張半身**，不是左右分割定妝圖） | [ ] |
-| 4 | 時間軸分鏡表 | mv-11 | `storyboard_v1.md`（秒數加總＝歌長、單鏡 ≤10 秒、標最難一鏡） | [ ] |
+| 4 | 時間軸分鏡表 | mv-11 | `storyboard_v1.md`（秒數加總＝歌長，微電影另加片頭／片尾戲秒數；單鏡 ≤10 秒、標最難一鏡） | [ ] |
 | 5 | 場景提示詞、分鏡圖 | mv-03（共修）、mv-12 生圖；mv-04 選用（同一場景先試機位）、mv-05 放大 | `shots/cutNN_*.png` | [ ] |
 | 6 | 影片提示詞 | mv-06（**審核**，三家無意見） | 定案稿在共修紀錄 → 記到 `共審紀錄.md` | [ ] |
 | 7 | 選路線 | 老師決定整支 MV 走 🅰 Colab H3、🅱 Google Flow、🅲 Magnific 或 🅳 Kling.ai | 寫在 `brief.md` 最後一行 | [ ] |
 | 8🅰 | H3 分鏡審核 → 拆檔 → **首幀組圖審查**（看得到圖的一方做，沒過不送生成）→ 清單（老師逐鏡選放大方式）→ 老師說「直接生影片」→ **先做最難一鏡** → 整批生成 → 放大 → 搬回 | `--flow mv-h3`、`h3_specs_from_review.py`、`%run h3_guard.py`（一定用 %run，!python 放不掉 GPU；守護會自己叫 h3_batch.py）、`collect_videos.py` | `videos-raw/cutNN_*.mp4` | [ ] |
-| 8🅱 | Flow 提示詞審核 → AI 用 `flow_auto.py` **預演**（上傳首幀與提示詞，不送出）→ 老師說「直接生影片」→ 加 `--go` 送出、一次一鏡、下載 → 放回 | `--flow mv-flow`、`flow_auto.py run`（預演）→ `run … --project <網址> --go`、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
+| 8🅱 | Flow 提示詞審核 → AI 用 `flow_auto.py` **預演**（上傳首幀與提示詞，不送出）→ 老師說「直接生影片」→ **先做最難一鏡**（`jobs_hardest.json` 只放那一鏡）→ 老師看過再整批（`jobs.json` 拿掉已生的那鏡）、一次一鏡、下載 → 放回 | `--flow mv-flow`、`flow_auto.py run`（預演）→ `run … --project <網址> --go`、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 8🅲 | Magnific：選模型＋`simulate_cost` 試算 → 清單（含點數）→ 最難一鏡 → 整批 → 下載改名放回 | Magnific MCP（`video_generate`，1080p、`withSoundEffects: false`）、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 8🅳 | Kling.ai：查點數 → （要鎖角色才）建 Element → 上傳首幀 → 清單 → 最難一鏡量點數 → 整批 → 下載改名放回 | Kling MCP（`image_to_video`／`omni_ref_video`，**要明寫 1080p**）、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 9 | 組裝 1080p | `make_mv.py --videos --storyboard --size 1920x1080` | `{{MV名}}_完整MV.mp4` | [ ] |

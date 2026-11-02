@@ -1,7 +1,7 @@
 # {{MV名}}｜分鏡表 v1
 
 > 由 mv-11 填寫。下面「分鏡表」那張表會被 `scripts/storyboard_md.py` 讀走（make_mv／review_mv／collect_videos／h3_specs_from_review 共用），**欄位名稱不要改**。
-> 規則：秒數加總＝歌長；要生影片的鏡 ≤10 秒；動畫用 zoom_in／zoom_out／pan_left／pan_right；轉場寫「進/出」，用 fadein／fade／whiteflash／fadeout；景別不要連續 3 鏡相同，唱歌鏡不排臉部特寫。
+> 規則：秒數加總＝歌長（微電影 MV 有片頭前導戲／片尾餘韻時＝prologue＋歌長＋epilogue，見 mv-11）；要生影片的鏡 ≤10 秒；動畫用 zoom_in／zoom_out／pan_left／pan_right；轉場寫「進/出」，用 fadein／fade／whiteflash／fadeout；景別不要連續 3 鏡相同，唱歌鏡不排臉部特寫。
 
 **導演任務**：我想讓＿＿聽完／看完感覺到＿＿（1–2 個感覺詞；「好看、高級」是評價不是感覺）
 
