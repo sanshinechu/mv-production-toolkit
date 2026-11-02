@@ -2,7 +2,7 @@
 name: 影片提示詞生成
 description: 為靜態圖片添加動態效果描述，生成適用於影片生成工具的中文提示詞
 triggers: 影片提示詞、動態效果、視頻提示詞、靜態變動態、添加動態
-version: 1.4.2
+version: 1.4.3
 author: 羅東國小資訊組長
 ---
 
@@ -60,7 +60,7 @@ author: 羅東國小資訊組長
 | 單人鏡 | 完全不提其他人；多人鏡寫 `Exactly N people` | 提到誰誰就冒出來 |
 | 電影感用語 | 加 `NO black letterbox bars` | 會自帶黑邊 |
 | 人物移動 | **不要橫向走過畫面**，改成原地轉身、走向／離開鏡頭 | 模型會跟拍，背景家具跟著滑 |
-| 不是對嘴的鏡頭 | 加「嘴巴自然閉著，沒有說話、沒有唱歌」（`lips closed, not talking or singing`） | 看得到臉時，角色常會自己嘟囔 |
+| 不是對嘴的鏡頭 | 加「嘴巴自然閉著，沒有說話、沒有唱歌」，**頭尾各寫一次**：動作句裡一次（`…, lips closed, not talking or singing.`），結尾再一次（`Lips closed, not talking or singing, for the entire shot.`，見下方尾綴） | 看得到臉時，角色常會自己嘟囔；Omni 舊寫法 0/2、頭尾都寫 1/1（2026-10-31 實測，見 `docs/影片分流策略.md` 🅱 已知坑） |
 | 低頭、轉身後再露臉 | 另做一張「動作結束時」的尾幀把臉鎖住 | 臉轉開再轉回來就換人了 |
 | 首尾幀（同一場景的連續動作） | 尾幀**構圖跟首幀一樣，但必須是另一張圖**（從首幀改動作） | 構圖不同 → 鏡頭搖過去湊；同一張圖 → 畫面凍住 |
 | 動作要卡在某個字或拍點 | 寫明「在第 X 秒做 Y」 | 不寫的話動作常慢半拍 |
@@ -78,11 +78,11 @@ author: 羅東國小資訊組長
 依鏡頭情況挑用，貼在中文提示詞最後面：
 
 ```
-單人、固定鏡頭、非對嘴：
-LOCKED-OFF STATIC CAMERA on a tripod. Lips closed, not talking or singing. NO black letterbox bars.
+單人、固定鏡頭、非對嘴（動作句裡也要先寫一次 lips closed）：
+LOCKED-OFF STATIC CAMERA on a tripod. Lips closed, not talking or singing, for the entire shot. NO black letterbox bars.
 
-單人、有運鏡（只留一種）：
-Single slow push-in, no other camera moves. Lips closed, not talking or singing. NO black letterbox bars.
+單人、有運鏡（只留一種；動作句裡也要先寫一次 lips closed）：
+Single slow push-in, no other camera moves. Lips closed, not talking or singing, for the entire shot. NO black letterbox bars.
 
 多人、固定鏡頭（N 換成實際人數）：
 Exactly 3 people. LOCKED-OFF STATIC CAMERA on a tripod. NO black letterbox bars.
