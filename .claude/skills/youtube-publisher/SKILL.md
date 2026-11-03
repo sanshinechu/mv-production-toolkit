@@ -216,7 +216,7 @@ python yt-auto-publisher/scripts/manage_channel.py \
 ```
 MV_01-10 製作完成
     ↓
-media-generation 生成最終影片
+影片分流 🅰～🅳 生成各鏡（docs/影片分流策略.md）→ make_mv.py 組裝成完整 MV
     ↓
 使用本工具上傳 YouTube
     ↓
@@ -343,7 +343,7 @@ python yt-auto-publisher/scripts/upload_video.py \
 ## 📞 與 MV 工作流程的整合
 
 **最後一步**：
-1. ✅ **media-generation** → 生成最終影片
+1. ✅ **影片分流** → 依 `docs/影片分流策略.md`（01_MV製作 專案內，唯一正本）選 🅰 Colab H3／🅱 Google Flow／🅲 Magnific／🅳 Kling.ai 生成各鏡，再用 `scripts/make_mv.py` 組裝（`media-generation` 已改成舊版參考，2026-11-01 起不再用來生影片）
 2. 📤 **本工具** → 自動上傳到 YouTube
 3. 🔔 → 分享連結到社群媒體
 

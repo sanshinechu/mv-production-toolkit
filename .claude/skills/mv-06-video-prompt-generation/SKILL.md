@@ -2,7 +2,7 @@
 name: 影片提示詞生成
 description: 為靜態圖片添加動態效果描述，生成適用於影片生成工具的中文提示詞
 triggers: 影片提示詞、動態效果、視頻提示詞、靜態變動態、添加動態
-version: 1.4.3
+version: 1.4.4
 author: 羅東國小資訊組長
 ---
 
@@ -198,23 +198,32 @@ Exactly 3 people. LOCKED-OFF STATIC CAMERA on a tripod. NO black letterbox bars.
 
 **輸出提示詞**：
 ```
-開場：主角靜坐窗邊，鏡頭從遠景逐漸 Push In 靠近。
-0-3 秒：微妙的 Push In，主角保持靜止，但月光開始在她臉上產生流動的光影效果，
-彷彿時間在推進。她的眼神緩緩向窗外移動。
+開場：鏡頭從中遠景起手，全程只有一次緩慢的 Push In，推到臉部中特寫停住，
+中途不換別種運鏡。
+
+0-3 秒：主角靜坐窗邊保持靜止，月光開始在她臉上產生流動的光影效果，
+彷彿時間在推進。她的眼神緩緩向窗外移動，嘴巴自然閉著，沒有說話、沒有唱歌
+（lips closed, not talking or singing）。
 
 3-5 秒：她的雙手開始輕輕移動，從膝蓋上抬起，放在心口位置。
-表情從沉思逐漸轉為溫柔的微笑。
+表情從沉思逐漸轉為溫柔的微笑，嘴唇仍然閉著。
 
-5-7 秒：月光變得更加耀眼，粒子效果增強，彷彿靈光初現。
-運鏡方式：緩慢的 Orbit Shot，攝影機輕輕繞著人物移動，
-展現周圍被月光照亮的環境。
+5-7 秒：月光變得更加耀眼，粒子效果增強，彷彿靈光初現，
+周圍的窗框與擺設被月光照亮。推鏡持續，速度不變。
 
 7-10 秒：她抬起頭，眼神朝向月光的方向，閉上眼睛。
-運鏡回到正面 Push In，靠近臉部特寫，突出她得到答案時的寧靜與欣慰。
+推鏡停在臉部中特寫，突出她得到答案時的寧靜與欣慰。
 
 整體風格：電影質感，光影流暢，節奏緩慢沉靜，情感內斂但有力。
 色彩：冷色調的藍銀色為主，逐漸轉暖，象徵希望出現。
+
+Single slow push-in, no other camera moves. Lips closed, not talking or singing, for the entire shot. NO black letterbox bars.
 ```
+
+> 💡 原本這個範例在 10 秒內串了 Push In → Orbit Shot → Push In 三種運鏡，跟上面「一鏡一個主運鏡」
+> 那條直接衝突；而且主角臉全程看得到、還閉著眼微笑，卻一句閉嘴都沒寫，角色會自己嘟囔。
+> 2026-11-03 改成單一 Push In，並照「不是對嘴的鏡頭」那條把閉嘴補成頭尾各寫一次。
+> 想要「正面特寫 → 環繞」的效果，拆成兩鏡、各自生成，再剪接起來。
 
 ### 範例 2：靜止轉為高能量運動
 
@@ -235,13 +244,17 @@ Exactly 3 people. LOCKED-OFF STATIC CAMERA on a tripod. NO black letterbox bars.
 背景的霓虹燈開始閃爍，增加節奏感。
 
 5-8 秒：他朝鏡頭跑近，鏡頭持續低角度緩慢後退（單一主運鏡，不再換別種）。
-身後產生輕微運動模糊，強調速度。嘴巴閉著，沒有說話。
+身後產生輕微運動模糊，強調速度。嘴巴自然閉著，沒有說話、沒有唱歌
+（lips closed, not talking or singing）。
 
-整體風格：動感十足，色彩飽和，充滿青春活力。NO black letterbox bars。
+整體風格：動感十足，色彩飽和，充滿青春活力。
+
+Single slow low-angle pull-back, no other camera moves. Lips closed, not talking or singing, for the entire shot. NO black letterbox bars.
 ```
 
 > 💡 原本這個範例在 10 秒內串了 Pull Out → Dolly → Pull Back → Push In 四種運鏡，實際生成很容易漂移或自己切鏡。
 > 想要「全景 → 特寫」的效果，拆成兩鏡、各自生成，再用剪接（Match Cut）接起來。
+> 閉嘴原本只在 5-8 秒寫一次中文、結尾沒有英文尾綴，2026-11-03 一併補成頭尾各寫一次。
 
 ---
 

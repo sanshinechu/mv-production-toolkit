@@ -2,7 +2,7 @@
 name: 空拍圖與運鏡生成
 description: 生成無人機視角的空拍圖，並提供多種專業運鏡指令（Orbit、Push In、Pull Out 等）
 triggers: 空拍、無人機、運鏡、Orbit、航拍、鳥瞰
-version: 1.2.1
+version: 1.2.2
 author: 羅東國小資訊組長
 ---
 
@@ -150,9 +150,10 @@ FPV drone shot, [環境描述], [速度與動作描述], proximity flying,
 - 選擇上述 5 種方式之一
 - 我會提供該運鏡的詳細提示詞
 
-**選項 2：組合運鏡**
-- 結合多種運鏡方式
-- 例：先 Push In，再轉 Orbit，最後 Pull Out
+**選項 2：組合運鏡（一定拆成兩鏡，不要寫成一支）**
+- 想要兩種運鏡接起來時，我會分別給兩段提示詞，各自生成，剪接時再接起來
+- 例：第 1 鏡 Push In 靠近，第 2 鏡 Orbit 環繞
+- 理由見下方〈空拍鏡頭的人物處理〉「一支空拍影片只用一種主運鏡」那條
 
 **選項 3：讓我推薦**
 - 根據圖片內容和主題推薦最適合的運鏡
@@ -199,7 +200,7 @@ cinematic 4k, natural golden hour lighting, no camera shake, 15-second duration.
 
 ---
 
-### 範例 2：組合運鏡 - Push In 到 Orbit
+### 範例 2：組合運鏡 - Push In 到 Orbit（拆成兩鏡生成）
 
 **輸入**：
 ```
@@ -208,18 +209,24 @@ cinematic 4k, natural golden hour lighting, no camera shake, 15-second duration.
 主題：從遠距離發現主角，再展現周圍的山景
 ```
 
-**運鏡流程**：
+**拆法**：兩種運鏡**各自一鏡、各自生成**，剪接時接起來——不要寫成同一支提示詞。
+
 ```
-0-5 秒：Push In（推鏡）
+第 1 鏡：Push In（推鏡），單一主運鏡
 - 無人機從距離較遠的上空位置開始
 - 平穩地向前推進，逐漸靠近山頂
 - 觀眾的視野從廣闊的山脈全景逐漸聚焦到主角
+- 鏡尾停在「靠近主角的上空」，這個狀態就是第 2 鏡的首幀
 
-5-15 秒：Orbit（環繞）
-- 靠近主角後，切換為環繞運鏡
-- 無人機以主角為中心，平穩地 360 度旋轉
+第 2 鏡：Orbit（環繞），單一主運鏡
+- 從第 1 鏡鏡尾接續：無人機已經在主角上空
+- 以主角為中心，平穩地旋轉
 - 逐漸展現壯闊的山景和主角在其中的位置
 ```
+
+> 💡 原本這個範例把 Push In 與 Orbit 寫成同一支（0-5 秒推、5-15 秒環繞），跟下方
+> 〈空拍鏡頭的人物處理〉「一支空拍影片只用一種主運鏡；『組合運鏡』拆成兩鏡生成再剪接」
+> 那條直接衝突，實際生成很容易漂移或自己切鏡。2026-11-03 改成兩鏡寫法。
 
 ---
 
@@ -229,7 +236,7 @@ cinematic 4k, natural golden hour lighting, no camera shake, 15-second duration.
 - 溫柔敘事的 MV：Push In 或 Pull Out
 - 全景展現的 MV：Orbit 或 Wide Aerial
 - 動感激昂的 MV：FPV 高速飛行
-- 引導觀眾視線：Pull Out → Orbit → Push In
+- 引導觀眾視線：Pull Out、Orbit、Push In **各自一鏡**，剪接串起來（不要寫成同一支）
 
 ✅ **考慮音樂節奏**
 - 運鏡速度應該與音樂的節奏相匹配
