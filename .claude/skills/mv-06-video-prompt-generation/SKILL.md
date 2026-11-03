@@ -2,7 +2,7 @@
 name: 影片提示詞生成
 description: 為靜態圖片添加動態效果描述，生成適用於影片生成工具的中文提示詞
 triggers: 影片提示詞、動態效果、視頻提示詞、靜態變動態、添加動態
-version: 1.4.4
+version: 1.4.5
 author: 羅東國小資訊組長
 ---
 
@@ -84,8 +84,8 @@ LOCKED-OFF STATIC CAMERA on a tripod. Lips closed, not talking or singing, for t
 單人、有運鏡（只留一種；動作句裡也要先寫一次 lips closed）：
 Single slow push-in, no other camera moves. Lips closed, not talking or singing, for the entire shot. NO black letterbox bars.
 
-多人、固定鏡頭（N 換成實際人數）：
-Exactly 3 people. LOCKED-OFF STATIC CAMERA on a tripod. NO black letterbox bars.
+多人、固定鏡頭、非對嘴、看得到臉（N 換成實際人數；動作句裡也要先寫一次 lips closed）：
+Exactly 3 people. LOCKED-OFF STATIC CAMERA on a tripod. Lips closed, not talking or singing, for the entire shot. NO black letterbox bars.
 ```
 
 > ⚠️ 單人鏡**不寫人數、也不描述任何旁人**（連「沒有路人」「only one person」都別寫）——提到人，人就容易冒出來。人數只在多人鏡用 `Exactly N people` 寫一次。
@@ -294,7 +294,7 @@ A: 會的。使用專業術語幫助 AI 更精確地理解你的意圖。
 A: AI 會根據你的文字描述來生成影片，但高品質的參考圖片能幫助更好的效果。
 
 **Q: 生成的影片時長通常是多少？**
-A: **單鏡 5–10 秒**（依工具上限，最長不超過 12 秒）。整首歌是很多鏡剪起來的，不是一次生成；太長的鏡頭會漂移、自己切鏡。短的插入鏡也至少生 5 秒再剪。
+A: **單鏡 ≤10 秒**（依工具上限，最長不超過 12 秒）。整首歌是很多鏡剪起來的，不是一次生成；太長的鏡頭會漂移、自己切鏡。生成長度看所選路線**能選的秒數**，取**不少於分鏡秒數**的最短那個（例：🅱 Flow Omni 只有 4／6／8／10，分鏡 4 秒就選 4），多的組裝時裁掉；各路線可選秒數以 `docs/影片分流策略.md`（01_MV製作 專案內）為準，這裡不抄。
 
 **Q: 可以在提示詞中加入特殊效果嗎？**
 A: 可以。描述色彩分級、失焦、光斑、動感模糊等效果都是有幫助的。

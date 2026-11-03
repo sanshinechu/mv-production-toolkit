@@ -2,7 +2,7 @@
 name: 空拍圖與運鏡生成
 description: 生成無人機視角的空拍圖，並提供多種專業運鏡指令（Orbit、Push In、Pull Out 等）
 triggers: 空拍、無人機、運鏡、Orbit、航拍、鳥瞰
-version: 1.2.2
+version: 1.2.3
 author: 羅東國小資訊組長
 ---
 
@@ -187,7 +187,7 @@ FPV drone shot, [環境描述], [速度與動作描述], proximity flying,
 隨著無人機環繞，周圍的城市建築、街道、人群逐漸進入和退出畫面，
 展現城市的壯闊與主角身在其中的位置對比。
 光線為自然日光或金色時刻，增強電影感。
-整個動作平穩無抖動，時長約 10-15 秒。
+整個動作平穩無抖動，時長約 8-10 秒（單鏡不超過 10 秒）。
 ```
 
 **英文指令**：
@@ -195,7 +195,7 @@ FPV drone shot, [環境描述], [速度與動作描述], proximity flying,
 FPV drone shot performing smooth 360-degree orbit around central character 
 in urban plaza at constant altitude, character remains centered in frame, 
 surrounding cityscape rotates, establishes environmental scale and subject isolation, 
-cinematic 4k, natural golden hour lighting, no camera shake, 15-second duration.
+cinematic 4k, natural golden hour lighting, no camera shake, 10-second duration.
 ```
 
 ---
@@ -251,8 +251,9 @@ cinematic 4k, natural golden hour lighting, no camera shake, 15-second duration.
 - 這會大幅影響最終的視覺效果
 
 ✅ **時長控制**
-- 單一運鏡 10-30 秒效果最佳
-- 組合運鏡的各段可以 5-10 秒為單位
+- 單鏡 ≤10 秒（工具上限另計，最長不超過 12 秒，見 MV_11 Step 3）；要更長就拆鏡
+- 組合運鏡拆成各自一鏡，每鏡一樣 ≤10 秒
+- 真的要一鏡拉長（例：🅳 Kling 4.0 長鏡頭），照 `docs/影片分流策略.md`（01_MV製作 專案內）另外註明
 
 ---
 
@@ -261,7 +262,7 @@ cinematic 4k, natural golden hour lighting, no camera shake, 15-second duration.
 - 空拍、大遠景裡的人物只有幾十像素，**臉放大也救不回**：人物用背影、剪影或很小的身形，不安排表情與對嘴。
 - 要看表情，交給下一鏡的中景或特寫（MV_04 的腰上中景、特寫）。
 - 一支空拍影片只用**一種主運鏡**（Orbit 或 Push In 擇一）；「組合運鏡」拆成兩鏡生成再剪接。
-- 電影感用語記得加 `NO black letterbox bars`；畫面裡有幾個人就寫 `Exactly N people`。
+- 電影感用語記得加 `NO black letterbox bars`；單人鏡不寫人數；多人鏡才寫 `Exactly N people`（同 MV_06 尾綴下方那條）。
 
 ---
 
@@ -271,7 +272,7 @@ cinematic 4k, natural golden hour lighting, no camera shake, 15-second duration.
 A: 兩者都是靠近主體的運鏡，但 Push In 用於無人機，Dolly 用於地面攝影機。
 
 **Q: 可以在運鏡中加入旋轉嗎？**
-A: 可以。例如 Push In 同時輕微旋轉，製造螺旋上升的效果。
+A: 不要寫在同一鏡。一支空拍影片只用一種主運鏡（見上方〈空拍鏡頭的人物處理〉）；想要「推進＋旋轉」的感覺，Push In、Orbit **各自一鏡生成**，剪接時接起來。
 
 **Q: FPV 飛行適合 MV 的什麼時刻？**
 A: 適合高能量的片段、突破的時刻或製造驚喜感的時刻。
@@ -280,7 +281,7 @@ A: 適合高能量的片段、突破的時刻或製造驚喜感的時刻。
 A: 可以。根據音樂的節奏和故事節奏進行調整。
 
 **Q: 多個無人機視角可以怎麼組合？**
-A: 可以用不同的運鏡方式連接，製造流暢的多視角敘事。
+A: 每個視角各自一鏡、各自生成，剪接時再連起來；連續動作的鏡組讓前一鏡鏡尾的狀態＝下一鏡首幀，接起來才順。
 
 ---
 
@@ -288,7 +289,7 @@ A: 可以用不同的運鏡方式連接，製造流暢的多視角敘事。
 
 空拍圖和運鏡指令完成後，建議：
 
-1. **media-generation** → 根據提示詞生成空拍影片
+1. **影片分流** → 依 `docs/影片分流策略.md`（01_MV製作 專案內，唯一正本）選 🅰～🅳 路線生成空拍影片（`media-generation` 已改成舊版參考，不再用來生影片）
 2. **MV_06 影片提示詞生成** → 加入進一步的動態效果
 3. **MV_09 Google Flow 微電影製作** → 製作完整的微電影
 
