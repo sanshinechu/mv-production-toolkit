@@ -2,7 +2,7 @@
 name: Q 版圖片設計大師
 description: 製作可愛的 Q 版插圖和簡報圖片，提供專業的設計建議和生圖提示詞
 triggers: Q 版、插圖、簡報圖片、插畫、可愛風格、Q版插圖
-version: 1.2.1
+version: 1.2.2
 author: 羅東國小資訊組長
 ---
 
@@ -212,7 +212,7 @@ A: 會稍微多一些，但我會確保它們的風格和配色保持一致。
 
 圖片設計完成後，建議：
 
-1. **使用 media-generation** → 根據提示詞生成最終圖片
+1. **生圖** → 走現行生圖管道：Claude 用 `mv-12`／`draw`，Codex、Antigravity 用內建免費生圖（`media-generation` 已改成舊版參考，只在明講時才用），用上面的提示詞生成最終圖片
 2. **融入簡報** → 將圖片整合到你的 PowerPoint 或 Keynote 簡報中
 3. **進行調整** → 如需調整，再次使用本 Skill 優化
 

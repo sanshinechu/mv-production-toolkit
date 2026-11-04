@@ -2,7 +2,7 @@
 name: Google Flow 微電影製作
 description: 利用首尾幀功能製作無縫轉場效果的微電影，生成可直接複製的圖片和影片提示詞
 triggers: Google Flow、轉場、微電影、無縫轉場、首尾幀
-version: 1.2.1
+version: 1.2.2
 author: 羅東國小資訊組長
 ---
 
@@ -237,7 +237,7 @@ A: 從概念設計到最終提示詞，通常 1-2 小時。實際生成時間取
 
 微電影完成後，建議：
 
-1. **media-generation** → 根據提示詞生成首尾幀圖片
+1. **生圖** → 走現行生圖管道：Claude 用 `mv-12`／`draw`，Codex、Antigravity 用內建免費生圖（`media-generation` 已改成舊版參考，只在明講時才用），用上面的提示詞生成首尾幀圖片（首尾幀要同一個空間，見 MV_06）
 2. **Google Flow 工具** → 執行無縫轉場生成
 3. **影片編輯** → 將微電影整合到完整的 MV 中
 
