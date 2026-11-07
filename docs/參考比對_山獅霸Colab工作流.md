@@ -121,3 +121,30 @@ https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE
 - 再增加不同角色、歌速與景別樣本。G4、完整饒舌與第三方 AudioLock 暫列後續。
 
 Claude 原始詳錄在 Obsidian：每日筆記/2026-10-31-家裡用筆電.md；正式規則仍以 [影片分流策略](影片分流策略.md) 為準。
+
+## 2026-11-08 上游差異（63e7d97→b7a65d4，31 個 commit）
+
+- 紀錄：2026-11-08，Claude。只讀 GitHub 差異，沒有開 Colab、沒有生成。
+- 固定版本：https://github.com/mathruffian-dot/shanshiba-workflow-colab/tree/b7a65d4ecf746e9ceba513cd6994b1a614aedc0a
+- 以下是作者在他的環境裡的紀錄，**我們還沒實測**。
+
+### 跟 🅰 唱歌鏡最有關
+
+1. **嘴不動**（rap-battle `references/video-spec.md`）：首幀閉嘴又加上尾幀＝首幀，嘴型會被鎖住；寫 quietly／low voice／stays still 嘴也會變小。作者的做法：先用同場驗證過的首幀，action 寫 `his mouth opens visibly on every syllable`、換 seed，交片前量所有演唱鏡嘴部的逐格變化，挑出最低的幾支。這可能就是我們特寫 0/2 的一部分原因，下次重測可以拿來當對照組。
+2. **H3 會自己切鏡**（1–2.4 秒，沒台詞的短反應鏡最常發生）：新增 `tools/clipcheck.py`，逐鏡跟首幀算相關係數，低於 0.7 就標 CHECK。`review_mv.py` 目前沒有這項。
+3. **新增 H3 規則**（`docs/03_規則與踩坑.md`、video-spec）：soundscape／setting 不寫 crowd、chatter（會畫出路人）；近景背後要貼牆、門或櫃子，不留空地；慢推最多約 5%；人不要「拿著東西走出畫面」（會變殘影）；只拍手的插入鏡要明寫「只有手和前臂」；限制句加 no flags, banners；H3 念的台詞開頭不放「……」，稱呼後面不標逗號。
+4. **Veda 閃屏**：Veda 稀疏注意力會讓整個畫面在第 51／119／187 格閃一下，上游已改成預設關閉。我們的 `colab_mv/tools/h3_shot.py` 只在 spec 明寫 `sparse` 時才開，`colab_mv/inputs/` 也沒有任何 spec 寫了 → 沒中。
+5. **控制字元檢查**：上游 h3_shot 會擋 prompt 裡的控制字元（作者因為 regex 替換壞掉，23 行台詞變成亂語）。**11-08 已移植**到 `colab_mv/tools/h3_shot.py` 的 `lint()`（備份 `h3_shot.py.bak-20261108`），本機用假 prompt 驗過：含 `` 的會擋下，正常的照常通過。
+
+### 次要、先記著
+
+- 審片工具：`framecheck.py`（每秒一格總表）、`flashcheck.py`（抓閃屏）。
+- 真人感首幀的固定段落（`docs/07` §3b）：只在 Image 2.5 測過；我們多半是黏土／卡通風，參考價值普通。
+- Suno 經驗（rap-battle `songs.md`）：長的風格描述標籤幾乎沒用；短標籤 `[Breakdown]`、`[Build-up]` 大約四分之一的版本有效，要多抽；每場換人聲類型。要補進 mv-01 的話，改 dotfiles 正本。
+- `poly_check.py`（用教育部辭典查破音字）、`vc_swap.py`（念錯的字局部換聲，用到 MMS_FA，屬 CC BY-NC）：微電影對白可能用得到。
+- `colab_plan.py`（估算要開幾台）、同帳號開兩台 G4：都靠 Colab CLI＋G4，我們走瀏覽器＋A100，暫時用不到。
+
+### 還沒做
+
+- ~~把 1、3 寫進規則~~ **11-08 已完成**：寫進 H3 分鏡規格正本 `15_ai共筆工作流/flows/specs/H3分鏡.md`（分流策略 🅰 第 1 步本來就指向它，不重抄）。三方共審第 4 輪全部無意見；三家補的重點是「影片提示詞本來就有人群的鏡頭照寫不刪、在總表加註」，避免跟忠實規則衝突。
+- clipcheck 要併進 `review_mv.py` 還是單獨用，等下一支 MV 實際跑過再決定。
