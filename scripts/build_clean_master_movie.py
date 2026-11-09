@@ -1,21 +1,25 @@
 import os, sys, time, json, subprocess
 from pathlib import Path
 
-BASE_DIR = Path(r"C:\Users\user\我的雲端硬碟\Ai Code\10_科技競賽\115學年度\游智盃_南門河")
+# 2026-11-09 主機 1：路徑改從本檔往上推（原本寫死家裡用筆電的 C:\Users\user）；
+# 字幕改燒 generate_srt_subtitles.py 產的 ASS（短句、像素字級）；加 --subs-only 只重做第 3 步。
+BASE_DIR = Path(__file__).resolve().parents[2] / "10_科技競賽" / "115學年度" / "游智盃_南門河"
 MV_DIR = BASE_DIR / "南門河_MV製作"
 WORK_DIR = MV_DIR / "render_work"
 AUDIO_DIR = BASE_DIR / "繪本影片" / "音軌_v1"
 
 TIMELINE_FILE = AUDIO_DIR / "story_audio_timeline.json"
-SRT_FILE = AUDIO_DIR / "nanmen_story_full.srt"
+ASS_FILE = AUDIO_DIR / "nanmen_story_full.ass"
 
 MASTER_AUDIO_WAV = WORK_DIR / "master_audio_continuous_48k.wav"
 MASTER_VIDEO_MP4 = WORK_DIR / "master_video_continuous.mp4"
-FINAL_CLEAN_MOVIE = MV_DIR / "腳底下的小河冒險記_完整有聲微電影_正式版.mp4"
+FINAL_CLEAN_MOVIE = MV_DIR / "腳底下的小河冒險記_完整有聲微電影_正式版_字幕分段.mp4"
 
 def main():
     timeline = json.loads(TIMELINE_FILE.read_text(encoding="utf-8"))
-    
+    if "--subs-only" in sys.argv:
+        return burn_subs()
+
     # 步驟 1：建立單一連續的完整音訊母帶
     print("=== Step 1: Building Continuous Master Audio ===")
     audio_concat_list = WORK_DIR / "audio_concat_clean.txt"
@@ -55,12 +59,14 @@ def main():
     ]
     subprocess.run(cmd_video, check=True)
     print(f"Master video generated: {MASTER_VIDEO_MP4}")
+    burn_subs()
 
+
+def burn_subs():
     # 步驟 3：視訊 ＋ 純淨音訊母帶合流 ＋ 燒錄中文字幕
+    # 字級與樣式寫在 ASS 檔裡（PlayResY=1080，像素單位）；cwd 切到字幕資料夾，濾鏡只寫檔名，免跳脫碟號冒號
     print("\n=== Step 3: Muxing Audio + Video + Burning Subtitles ===")
-    srt_filter_path = str(SRT_FILE.resolve()).replace("\\", "/").replace(":", "\\:")
-    sub_style = "Fontname=Microsoft JhengHei,FontSize=22,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BackColour=&H80000000,BorderStyle=4,Outline=1,Shadow=1,Alignment=2,MarginV=35"
-    vf_sub = f"subtitles='{srt_filter_path}':force_style='{sub_style}'"
+    vf_sub = f"ass={ASS_FILE.name}"
 
     cmd_final = [
         "ffmpeg", "-y",
@@ -72,7 +78,7 @@ def main():
         "-shortest",
         str(FINAL_CLEAN_MOVIE)
     ]
-    subprocess.run(cmd_final, check=True)
+    subprocess.run(cmd_final, check=True, cwd=ASS_FILE.parent)
 
     final_size = FINAL_CLEAN_MOVIE.stat().st_size / 1024 / 1024
     print(f"\nSUCCESS! Clean movie rendered: {FINAL_CLEAN_MOVIE} ({final_size:.2f} MB)")

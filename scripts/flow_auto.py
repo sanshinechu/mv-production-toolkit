@@ -384,7 +384,9 @@ def download_1080p(page, tile, dest):
         tile.get_by_role("button", name="更多選項").click()
         page.get_by_text("下載", exact=True).first.hover()
         page.wait_for_timeout(800)
-        with page.expect_request(lambda r: "_upsampled" in r.url or "flow-content.google/video" in r.url, timeout=10 * 60_000) as req:
+        # 只認 _upsampled（1080p 升級檔）。11-09 早上一度放寬成「或 flow-content.google/video」，
+        # 結果攔到格子預覽的 720p，p07／p09／p10 安靜存成 720p（11-09 主機 1 量到）
+        with page.expect_request(lambda r: "_upsampled" in r.url, timeout=10 * 60_000) as req:
             page.locator("role=menuitem").filter(has_text="1080p").first.click()
         url = req.value.url
     except Exception:
@@ -393,7 +395,7 @@ def download_1080p(page, tile, dest):
             page.wait_for_timeout(1500)
             page.get_by_role("button", name="下載").click()
             page.wait_for_timeout(800)
-            with page.expect_request(lambda r: "_upsampled" in r.url or "flow-content.google/video" in r.url, timeout=10 * 60_000) as req:
+            with page.expect_request(lambda r: "_upsampled" in r.url, timeout=10 * 60_000) as req:
                 page.get_by_role("menuitem").filter(has_text="1080p").first.click()
             url = req.value.url
             page.keyboard.press("Escape")
