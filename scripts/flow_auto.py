@@ -137,6 +137,7 @@ def submit_button(page):
 
 def snapshot_counts(page):
     return {"tile": page.locator("main").get_by_role("group").count(),
+            "video": page.locator("main").get_by_role("img", name="生成的影片縮圖").count(),
             "fail": page.get_by_text("失敗", exact=True).count()}
 
 
@@ -151,7 +152,12 @@ def choose_settings(page, seconds, model):
     model_btn = page.get_by_role("button", name="選取模型系列")
     if model not in model_btn.inner_text():
         model_btn.click()
-        page.get_by_role("menuitem", name=model, exact=True).click()
+        # 2026-11-09 改：Flow 選單在停用模型後加註「即將於 12月5日停用」，改用 filter(has_text=model)
+        item = page.locator("role=menuitem").filter(has_text=model)
+        if item.count():
+            item.first.click()
+        else:
+            page.get_by_role("menuitem", name=model).click()
         page.wait_for_timeout(1200)
     if model not in model_btn.inner_text():
         raise RuntimeError(f"模型沒切到 {model}：{model_btn.inner_text()!r}")
@@ -169,6 +175,10 @@ def choose_settings(page, seconds, model):
 
 
 def upload_media(page, img):
+    # 先關閉可能遮擋的提示 toast（如「正在提升影片畫質... 關閉」）
+    for btn in page.get_by_role("button", name="關閉").all():
+        try: btn.click()
+        except Exception: pass
     with page.expect_file_chooser() as fc:
         page.get_by_role("button", name="新增媒體選單").click()
         page.get_by_role("menuitem", name="上傳").click()
@@ -213,6 +223,9 @@ def clear_frames(page):
 
 
 def set_frames(page, first, last=None):
+    for btn in page.get_by_role("button", name="關閉").all():
+        try: btn.click()
+        except Exception: pass
     clear_frames(page)
     upload_media(page, first)
     if last:
@@ -226,9 +239,7 @@ def set_frames(page, first, last=None):
 
 
 def wait_result(page, before, timeout=GEN_TIMEOUT):
-    """送出後等：多一格「失敗」→ fail；格子變多、且畫面上沒有 100% 以外的百分比 → ok（新的一格排在最前面）。
-    2026-10-30 Omni 實測：生完後「100%」會一直留在格子上，完成的格子也不是 <video>（數量 0）——
-    原本「等百分比消失、等 <video> 變多」兩個條件都永遠等不到，片子 40 秒就生好卻空等 15 分鐘逾時。"""
+    """送出後等：多一格「失敗」→ fail；影片縮圖變多或格子增加且無執行中百分比 → ok。"""
     t0 = time.time()
     last = ""
     while time.time() - t0 < timeout:
@@ -237,6 +248,12 @@ def wait_result(page, before, timeout=GEN_TIMEOUT):
         if fails.count() > before["fail"]:
             msg = fails.first.locator("xpath=..").inner_text().replace("\n", " ")
             return "fail", None, msg[:200]
+        # 2026-11-09 改：只要畫面上的「生成的影片縮圖」數量變多，代表新影片已生成完成
+        v_count = page.locator("main").get_by_role("img", name="生成的影片縮圖").count()
+        if v_count > before.get("video", 0):
+            page.wait_for_timeout(3_000)
+            tiles = page.locator("main").get_by_role("group").filter(has=page.get_by_role("img", name="生成的影片縮圖"))
+            return "ok", tiles.first, ""
         pct = page.get_by_text(re.compile(r"^\d+%$"))
         running = [t for t in (pct.nth(i).inner_text() for i in range(pct.count())) if t != "100%"]
         if running:
@@ -245,11 +262,8 @@ def wait_result(page, before, timeout=GEN_TIMEOUT):
                 last = running[0]
             continue
         tiles = page.locator("main").get_by_role("group")
-        # 送出後 14 秒左右才出現第一個百分比，那段時間新格子可能已經在、只是還沒開始跑：
-        # 沒看過進度就先別算完成（真的一直沒顯示百分比，等滿 1 分鐘才放行）
         if tiles.count() > before["tile"] and (last or time.time() - t0 > 60):
-            page.wait_for_timeout(3_000)   # 剛到 100% 時給它一點時間把格子換成成品
-            # 每格是 group（名稱＝Flow 自動取的標題），新的排第一格
+            page.wait_for_timeout(3_000)
             return "ok", tiles.first, ""
     return "timeout", None, f"超過 {timeout // 60} 分鐘"
 
@@ -370,17 +384,23 @@ def download_1080p(page, tile, dest):
         tile.get_by_role("button", name="更多選項").click()
         page.get_by_text("下載", exact=True).first.hover()
         page.wait_for_timeout(800)
-        # 不靠瀏覽器下載：按 1080p 後 Flow 先向 flow-content.google/<id>_upsampled?...Signature=... 要整支影片，
-        # 再轉成 blob 觸發下載，而 Chrome 常在這時把分頁連瀏覽器一起關掉——save_as 與 response.body()
-        # 都拿到 TargetClosedError（2026-10-30 實測，沒有當機紀錄）。所以只攔那個帶簽章的網址，
-        # 由 Python 自己下載，Chrome 之後關不關都不影響。
-        with page.expect_request(lambda r: "_upsampled" in r.url, timeout=10 * 60_000) as req:
-            page.get_by_text("1080p", exact=True).first.click()
+        with page.expect_request(lambda r: "_upsampled" in r.url or "flow-content.google/video" in r.url, timeout=10 * 60_000) as req:
+            page.locator("role=menuitem").filter(has_text="1080p").first.click()
         url = req.value.url
     except Exception:
-        if not page.is_closed():
-            dump(page, ROOT / "_flow_inspect" / ("err_dl_" + dt.datetime.now().strftime("%Y%m%d_%H%M%S")), dest.stem)
-        raise
+        try:
+            tile.click()
+            page.wait_for_timeout(1500)
+            page.get_by_role("button", name="下載").click()
+            page.wait_for_timeout(800)
+            with page.expect_request(lambda r: "_upsampled" in r.url or "flow-content.google/video" in r.url, timeout=10 * 60_000) as req:
+                page.get_by_role("menuitem").filter(has_text="1080p").first.click()
+            url = req.value.url
+            page.keyboard.press("Escape")
+        except Exception:
+            if not page.is_closed():
+                dump(page, ROOT / "_flow_inspect" / ("err_dl_" + dt.datetime.now().strftime("%Y%m%d_%H%M%S")), dest.stem)
+            raise
     import urllib.request
     with urllib.request.urlopen(url, timeout=600) as r:
         body = r.read()
@@ -458,6 +478,7 @@ def cmd_run(pw, a):
             box.fill("")
             continue
         before = snapshot_counts(page)
+        page.wait_for_timeout(2500)
         submit_button(page).click()
         status, tile, msg = wait_result(page, before)
         rec = {"time": dt.datetime.now().isoformat(timespec="seconds"), "cut": cut, "project": page.url,
