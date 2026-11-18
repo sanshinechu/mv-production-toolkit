@@ -38,7 +38,7 @@ OMNI, LITE = "Omni 1.1 Flash", "Veo 3.1 - Lite"
 # 一律 Omni（老師 2026-10-30 定）：秒數能照分鏡選，4 秒 7／6 秒 10／8 秒 12／10 秒 15 點；
 # Lite 不能選秒數、固定 8 秒 10 點，短鏡反而貴，首尾幀還得加速塞回分鏡
 LITE_SECONDS = 8
-GEN_TIMEOUT = 15 * 60
+GEN_TIMEOUT = int(os.environ.get("FLOW_GEN_TIMEOUT", 15 * 60))   # 2026-11-17 cut02 排隊超過 15 分鐘逾時，可用環境變數放寬
 
 
 def now():

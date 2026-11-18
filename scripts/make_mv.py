@@ -169,8 +169,14 @@ def make_video_clip(ffmpeg, video, trans_in, trans_out, dur, out_path, fit=False
     fit=True（首尾幀鏡頭）且影片比分鏡長 → 整支加速塞進分鏡秒數，不剪後半：尾幀在片子最後，
     從頭剪會把它剪掉而且不報錯（Veo 3.1 Lite 在 Flow 固定生 8 秒，分鏡 4 秒就只剩前半，2026-10-30 老師定）。"""
     have = probe_duration(video)
-    if have + 0.05 < dur:
-        print(f"  [ERR] {video.name} 只有 {have:.2f}s，分鏡要 {dur}s（先跑 collect_videos.py --check）"); return False
+    slow = ""
+    if have + 0.05 < dur and video.name.split("_")[0] in STRETCH_CUTS and dur / have <= 2:
+        # --stretch（2026-11-18）：剪掉壞段而變短的鏡，放慢補滿分鏡秒數；只對明確列出的鏡，其他照舊擋下
+        print(f"      放慢：{have:.2f}s 放慢 {dur / have:.2f} 倍補滿 {dur}s"
+              + ("  [注意] 超過 1.5 倍，動作會明顯變慢，抽幀時看一下" if dur / have > 1.5 else ""))
+        slow = f"setpts=PTS*{dur / have:.6f},"
+    elif have + 0.05 < dur:
+        print(f"  [ERR] {video.name} 只有 {have:.2f}s，分鏡要 {dur}s（先跑 collect_videos.py --check；剪過的鏡可加 --stretch）"); return False
     # 2026-10-10 檢視意見：「先 --check 再組裝」只是約定，這裡自己擋——低於輸出解析度的影片會被硬放大混進成片
     w, h, fps = probe_video(video)
     if (w < WIDTH or h < HEIGHT) and not ALLOW_LOWRES:
@@ -184,7 +190,7 @@ def make_video_clip(ffmpeg, video, trans_in, trans_out, dur, out_path, fit=False
         print(f"      首尾幀：{have:.2f}s 加速 {ratio:.2f} 倍塞進 {dur}s（不剪後半）"
               + ("  [注意] 超過 2 倍，動作會明顯變快，抽幀時看一下" if ratio > 2 else ""))
         speed = f"setpts=PTS*{dur / have:.6f},"   # 放在 fps 前面，加速後再重取 24 格
-    vf = (f"{speed}scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,crop={WIDTH}:{HEIGHT},"
+    vf = (f"{speed}{slow}scale={WIDTH}:{HEIGHT}:force_original_aspect_ratio=increase,crop={WIDTH}:{HEIGHT},"
           f"fps={FPS},setsar=1,{build_fade_filter(trans_in, trans_out, dur, FPS)}")
     r = subprocess.run([str(ffmpeg), "-y", "-i", str(video), "-t", str(dur), "-an", "-vf", vf,
                         "-pix_fmt", "yuv420p", "-c:v", "libx264", "-preset", "fast", "-crf", "18", str(out_path)],
@@ -196,6 +202,7 @@ def make_video_clip(ffmpeg, video, trans_in, trans_out, dur, out_path, fit=False
 
 ALLOW_LOWRES = False
 ALLOW_FPS = False
+STRETCH_CUTS = set()
 
 def probe_video(path):
     r = subprocess.run([shutil.which("ffprobe") or "ffprobe", "-v", "error", "-select_streams", "v:0",
@@ -491,7 +498,7 @@ def prepend_cover(ffmpeg, cover, sec, body, out):
 
 
 def main():
-    global STORYBOARD, WIDTH, HEIGHT, ALLOW_LOWRES, ALLOW_FPS
+    global STORYBOARD, WIDTH, HEIGHT, ALLOW_LOWRES, ALLOW_FPS, STRETCH_CUTS
     # 2026-10-10：Windows 主控台／被別的程式（Codex 等）擷取輸出時預設 cp950，--help 的中文會亂碼
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
@@ -504,6 +511,8 @@ def main():
     p.add_argument("--allow-fps", action="store_true", help=f"允許不是 {FPS} fps 的影片")
     p.add_argument("--fit", help="首尾幀鏡頭（逗號分隔，如 cut28,cut42）：比分鏡長就加速塞進去、不剪後半；"
                                  "--shots 裡有 cutNN_last.* 的鏡會自動算進來")
+    p.add_argument("--sub-margin", type=int, default=None, help="歌詞與對白字幕離底邊距離（libass 單位，288＝整個畫面高；預設歌詞 55、對白 25）")
+    p.add_argument("--stretch", help="剪過而比分鏡短的鏡（逗號分隔，如 cut08,cut35）：放慢補滿分鏡秒數，最多 2 倍")
     p.add_argument("--prologue", type=float, default=None, help="微電影：片頭前導戲秒數（音樂延遲幾秒才進場）")
     p.add_argument("--epilogue", type=float, default=None, help="微電影：片尾餘韻秒數（音樂結束後留幾秒環境音或畫面）")
     p.add_argument("--audio-cues", help="微電影：口白與環境音設定檔 audio_cues.json（含 VO 自動閃避音樂與 SFX 混音）")
@@ -518,6 +527,7 @@ def main():
     if args.cover and not Path(args.cover).exists():
         p.error(f"找不到封面 {args.cover}")
     ALLOW_LOWRES, ALLOW_FPS = args.allow_lowres, args.allow_fps
+    STRETCH_CUTS = {c.strip() for c in (args.stretch or "").split(",") if c.strip()}
     if args.storyboard:
         import storyboard_md
         STORYBOARD = storyboard_md.load_or_exit(args.storyboard)
@@ -614,10 +624,10 @@ def main():
         blocked_spans = vo_spans + [(s, e) for s, e, _ in dialog_entries]
         n_keep, n_drop = prepare_lyrics_srt(Path(args.sub_lyrics), tmp / "lyrics.srt", offset, blocked_spans)
         print(f"       歌詞字幕：平移 {offset:+.2f}s，{n_keep} 條；與口白重疊拿掉 {n_drop} 條")
-        vf_subs.append("subtitles=lyrics.srt:force_style='FontName=Microsoft JhengHei,FontSize=20,PrimaryColour=&H00E0FFFF,OutlineColour=&H00000000,Outline=2,MarginV=55'")
+        vf_subs.append(f"subtitles=lyrics.srt:force_style='FontName=Microsoft JhengHei,FontSize=20,PrimaryColour=&H00E0FFFF,OutlineColour=&H00000000,Outline=2,MarginV={args.sub_margin if args.sub_margin is not None else 55}'")
     if args.sub_dialog:
         write_srt(dialog_entries, tmp / "dialog.srt")
-        vf_subs.append("subtitles=dialog.srt:force_style='FontName=Microsoft JhengHei,FontSize=22,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,MarginV=25'")
+        vf_subs.append(f"subtitles=dialog.srt:force_style='FontName=Microsoft JhengHei,FontSize=22,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2,MarginV={args.sub_margin if args.sub_margin is not None else 25}'")
 
     cmd = [
         str(ffmpeg), "-nostdin", "-loglevel", "error", "-y",
