@@ -19,8 +19,8 @@
 | 8🅱 | Flow 提示詞審核 → AI 用 `flow_auto.py` **預演**（上傳首幀與提示詞，不送出）→ 老師說「直接生影片」→ **先做最難一鏡**（`jobs_hardest.json` 只放那一鏡）→ 老師看過再整批（`jobs.json` 拿掉已生的那鏡）、一次一鏡、下載 → 放回 | `--flow mv-flow`、`flow_auto.py run`（預演）→ `run … --project <網址> --go`、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 8🅲 | Magnific：選模型＋`simulate_cost` 試算 → 清單（含點數）→ 最難一鏡 → 整批 → 下載改名放回 | Magnific MCP（`video_generate`，1080p、`withSoundEffects: false`）、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
 | 8🅳 | Kling.ai：查點數 → （要鎖角色才）建 Element → 上傳首幀 → 清單 → 最難一鏡量點數 → 整批 → 下載改名放回 | Kling MCP（`image_to_video`／`omni_ref_video`，**要明寫 1080p**）、`collect_videos.py --check` | `videos-raw/cutNN_*.mp4` | [ ] |
-| 9 | 組裝 1080p | `make_mv.py --videos --storyboard --size 1920x1080` | `{{MV名}}_完整MV.mp4` | [ ] |
-| 10 | 自動檢查 | `review_mv.py --storyboard` | `review/` | [ ] |
+| 9 | 組裝 1080p | 填 `build.conf` → `bash scripts/build_mv.sh`（內含 make_mv → post/overlays.py → review_mv） | `review/{{MV名}}_後製_vN.mp4` | [ ] |
+| 10 | 自動檢查 | build_mv.sh 最後一段已跑 `review_mv.py` | `review/` | [ ] |
 | 11 | ⛔ **三家抽幀**（字幕淨空／亂碼／角色／轉場） | Claude／Codex／Antigravity 各自看 `review/*_pass1.jpg`、`*_cuts.jpg` | 三家都說 OK → 記日期與各家結論 | [ ] |
 | 12 | 打包與上傳 | mv-production-packaging、youtube-publisher | `metadata.md`、`cover.png`、`youtube-upload.json` | [ ] |
 
@@ -28,9 +28,10 @@
 
 ```
 python scripts/collect_videos.py "{{MV名}}" --storyboard "outputs/{{MV名}}/storyboard_v1.md" [--check]
-python scripts/make_mv.py --videos "outputs/{{MV名}}/videos-raw" --storyboard "outputs/{{MV名}}/storyboard_v1.md" --size 1920x1080 --music "outputs/{{MV名}}/music/<歌>.mp3" --out "outputs/{{MV名}}/{{MV名}}_完整MV.mp4"
-python scripts/review_mv.py "outputs/{{MV名}}/{{MV名}}_完整MV.mp4" --music "outputs/{{MV名}}/music/<歌>.mp3" --storyboard "outputs/{{MV名}}/storyboard_v1.md"
+bash scripts/build_mv.sh "outputs/{{MV名}}" v1        # 組裝＋後製字卡＋自動檢查；參數全在 build.conf，同版本號不會覆蓋（要蓋加 --force）
 ```
+
+> 組裝參數（`--stretch`、字幕、封面、前後奏…）寫在本資料夾的 `build.conf`，不要每次手打長指令。有 `post/overlays.py` 才會跑後製字卡那段。
 
 ## 資料夾
 
@@ -43,5 +44,6 @@ python scripts/review_mv.py "outputs/{{MV名}}/{{MV名}}_完整MV.mp4" --music "
 | `shots/` | 分鏡圖、角色參考圖（H3 首幀會複製成 `cutNN_first.png` 放進 colab_mv） |
 | `music/` | SUNO 原曲（別放進 git） |
 | `videos-raw/` | 四條路線的影片成品 `cutNN_短名.mp4`，1920×1080、24 fps；🅰 用 `collect_videos.py` 搬回時舊版自動移到 `_old/<時間>/`，🅱／🅲／🅳 直接放檔的要先自己把舊檔移到 `_old/` |
-| `review/` | review_mv.py 的抽幀圖與數字 |
+| `build.conf` | build_mv.sh 的組裝設定（路徑相對於本資料夾） |
+| `review/` | 成品 `{{MV名}}_後製_vN.mp4`、review_mv.py 的抽幀圖與數字 |
 | `metadata.md` | YouTube 7 區塊 |
